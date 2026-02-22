@@ -77,14 +77,20 @@ export const CreateCampaign: React.FC = () => {
             return;
         }
 
-        // Basic Validation
+        // Basic Validation — campaign duration: 1 to 45 days
         const launchDateObj = new Date(formData.launchDate);
+        launchDateObj.setHours(0, 0, 0, 0);
         const today = new Date();
-        const minDate = new Date();
-        minDate.setDate(today.getDate() + 7);
+        today.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((launchDateObj.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-        if (launchDateObj < minDate) {
-            setError('Launch date must be at least 7 days in the future');
+        if (diffDays < 1) {
+            setError('Launch date must be at least 1 day in the future');
+            setLoading(false);
+            return;
+        }
+        if (diffDays > 45) {
+            setError('Launch date must be within 45 days from today');
             setLoading(false);
             return;
         }
@@ -272,15 +278,31 @@ export const CreateCampaign: React.FC = () => {
                         </h2>
 
                         <div className="grid md:grid-cols-2 gap-6">
-                            <Input
-                                label="Launch Date"
-                                name="launchDate"
-                                type="date"
-                                value={formData.launchDate}
-                                onChange={handleInputChange}
-                                required
-                                helperText="Must be at least 7 days in the future"
-                            />
+                            <div>
+                                <Input
+                                    label="Launch Date"
+                                    name="launchDate"
+                                    type="date"
+                                    value={formData.launchDate}
+                                    onChange={handleInputChange}
+                                    required
+                                    helperText="Campaign duration: 1 to 45 days from today"
+                                />
+                                {formData.launchDate && (() => {
+                                    const ld = new Date(formData.launchDate);
+                                    ld.setHours(0, 0, 0, 0);
+                                    const td = new Date();
+                                    td.setHours(0, 0, 0, 0);
+                                    const days = Math.ceil((ld.getTime() - td.getTime()) / (1000 * 60 * 60 * 24));
+                                    if (days >= 1 && days <= 45) {
+                                        return <p className="text-xs text-indigo-400 mt-1">📅 {days}-day campaign</p>;
+                                    } else if (days > 45) {
+                                        return <p className="text-xs text-amber-400 mt-1">⚠️ Must be within 45 days</p>;
+                                    } else {
+                                        return <p className="text-xs text-red-400 mt-1">⚠️ Date must be in the future</p>;
+                                    }
+                                })()}
+                            </div>
 
                             <Input
                                 label="Budget (INR)"

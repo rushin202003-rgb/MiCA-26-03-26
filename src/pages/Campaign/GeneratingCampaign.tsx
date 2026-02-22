@@ -139,6 +139,63 @@ export const GeneratingCampaign: React.FC = () => {
         }, 1000);
     };
 
+    // --- PRE-PROCESSING: Build rich context before any AI calls ---
+    interface CampaignContext {
+        productDocContent: string;
+        contactCount: number;
+        hasContactData: boolean;
+        campaignDuration: number;
+        channels: string[];
+    }
+
+    const prepareContext = async (campaignData: Campaign): Promise<CampaignContext> => {
+        // 1. Extract product document content (if uploaded)
+        let productDocContent = '';
+        if (campaignData.product_document_url) {
+            try {
+                const { data: fileData, error: downloadError } = await supabase.storage
+                    .from('product-documents')
+                    .download(campaignData.product_document_url);
+
+                if (!downloadError && fileData) {
+                    const text = await fileData.text();
+                    // Truncate to ~6000 chars to avoid blowing up token limits
+                    productDocContent = text.slice(0, 6000);
+                }
+            } catch (err) {
+                console.warn('Could not extract product document:', err);
+            }
+        }
+
+        // 2. Count customer contacts
+        let contactCount = 0;
+        try {
+            const { count } = await supabase
+                .from('customer_data')
+                .select('*', { count: 'exact', head: true })
+                .eq('campaign_id', campaignData.id);
+            contactCount = count || 0;
+        } catch (err) {
+            console.warn('Could not count contacts:', err);
+        }
+
+        // 3. Calculate campaign duration from launch date
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const launchDate = new Date(campaignData.launch_date);
+        launchDate.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((launchDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const campaignDuration = Math.min(45, Math.max(1, diffDays));
+
+        return {
+            productDocContent,
+            contactCount,
+            hasContactData: contactCount > 0,
+            campaignDuration,
+            channels: campaignData.recommended_channels || [],
+        };
+    };
+
     const startGeneration = async (campaignData: Campaign) => {
         if (generationStartedRef.current) return;
         generationStartedRef.current = true;
@@ -148,19 +205,23 @@ export const GeneratingCampaign: React.FC = () => {
             // Update status to generating
             await supabase.from('campaigns').update({ status: 'generating' }).eq('id', campaignData.id);
 
+            // 0. Pre-process: extract document, count contacts, calculate duration
+            setProgressText("Analyzing product data...");
+            const context = await prepareContext(campaignData);
+
             // 1. Marketing Strategy
             setCurrentStep(0);
-            const strategy = await generateStrategy(campaignData);
+            const strategy = await generateStrategy(campaignData, context);
             setCompletedSteps(prev => [...prev, 'strategy']);
 
             // 2. Email Templates
             setCurrentStep(1);
-            await generateEmails(campaignData, strategy);
+            await generateEmails(campaignData, strategy, context);
             setCompletedSteps(prev => [...prev, 'emails']);
 
             // 3. WhatsApp & Social Content
             setCurrentStep(2);
-            await generateContent(campaignData);
+            await generateContent(campaignData, strategy, context);
             setCompletedSteps(prev => [...prev, 'content']);
 
             // 4. Image Generation
@@ -202,61 +263,156 @@ export const GeneratingCampaign: React.FC = () => {
     };
 
     // --- API CALL 1: STRATEGY ---
-    const generateStrategy = async (campaignData: Campaign) => {
+    const generateStrategy = async (campaignData: Campaign, context: CampaignContext) => {
         const toneDescription = campaignData.tone === 'Custom'
             ? `Custom — ${campaignData.tone_custom_words}`
             : campaignData.tone;
 
-        const prompt = `Generate a 4-week marketing campaign plan for the following business:
+        // Build the product knowledge section
+        const productKnowledge = context.productDocContent
+            ? `\n\nDETAILED PRODUCT DOCUMENT (uploaded by user):\n${context.productDocContent}`
+            : '';
 
+        const contactInfo = context.hasContactData
+            ? `CUSTOMER CONTACT LIST: ${context.contactCount} contacts uploaded (these are the people who will receive WhatsApp messages and emails directly)`
+            : `CUSTOMER CONTACT LIST: Not yet provided. Generate the strategy anyway — the user will upload contacts before launching. Note this in your response.`;
+
+        const channelList = context.channels.join(', ');
+
+        const prompt = `Analyze this product and design the optimal marketing campaign. You must CHOOSE the best marketing methodology for this specific product — do NOT use a generic template.
+
+=== PRODUCT INFORMATION ===
 PRODUCT NAME: ${campaignData.product_name}
-PRODUCT DESCRIPTION: ${campaignData.product_description}
+PRODUCT DESCRIPTION: ${campaignData.product_description}${productKnowledge}
+PRODUCT LINKS: ${campaignData.product_links || 'Not provided'}
+
+=== CAMPAIGN PARAMETERS ===
 TARGET AUDIENCE: ${campaignData.target_audience}
 LOCATION: ${campaignData.location || 'India (general)'}
-BUDGET: ₹${campaignData.budget.toLocaleString('en-IN')}
+MARKETING BUDGET (this is the client's ad spend — NOT the product price): ₹${campaignData.budget.toLocaleString('en-IN')}
 CAMPAIGN TONE: ${toneDescription}
-CHANNELS TO USE: ${JSON.stringify(campaignData.recommended_channels)}
+CHANNELS TO USE: ${channelList}
+CAMPAIGN DURATION: ${context.campaignDuration} days (campaign starts today and must build up TO the launch date)
 LAUNCH DATE: ${campaignData.launch_date || 'Immediately'}
+${contactInfo}
 
-The output MUST be valid JSON matching the schema:
+=== YOUR TASK ===
+1. ANALYZE the product type, price point (only if mentioned in description), audience psychology, and market positioning.
+2. CHOOSE the best marketing methodology from: AIDA (Attention→Interest→Desire→Action), PAS (Problem→Agitation→Solution), Storytelling (Emotional narrative arc), Scarcity (Urgency + limited availability), Social_Proof (Testimonials + community), Educational (Authority building + value-first). Explain WHY you chose it.
+3. DECIDE the optimal number of content pieces per channel. This is NOT fixed — it depends on the campaign duration, product type, and channel purpose:
+   - EMAIL: Personal nurture sequence to known contacts. Each email builds on the previous. Decide count based on duration (typically 1 email every 3-5 days).
+   - WHATSAPP: Personal, conversational messages to known contacts. Higher frequency than email. Messages feel like they come from a trusted person, not a corporation.
+   - INSTAGRAM: Public broadcast to general audience. Each post MUST stand alone — viewers may not have seen previous posts. Focus on awareness, social proof, and brand building. Count: between 5 and 15 posts.
+4. DESIGN journey stages for each channel — what purpose does each message serve in the overall conversion journey?
+5. ALLOCATE the marketing budget across channels with reasoning.
+
+=== CRITICAL RULES ===
+- NEVER mention or invent a product price/cost unless specific pricing appears in the product description above.
+- NEVER fabricate statistics, testimonials, or specific numbers. Only use facts from the product description.
+- The campaign builds up TO the launch date — it's a pre-launch buildup, not a post-launch maintenance campaign.
+- Adapt content volume to the ${context.campaignDuration}-day duration. A 7-day campaign needs fewer but more impactful touchpoints than a 30-day campaign.
+
+=== REQUIRED JSON OUTPUT ===
 {
-  "campaign_name": "string — creative name that reflects the product and tone",
-  "strategy_summary": "string — 3-4 sentences describing the overall approach, target positioning, and key message",
-  "target_persona": "string — detailed 3-4 sentence archetype of the ideal customer",
-  "channels": ["string"],
-  "weekly_plan": [{ "week": 1, "theme": "string", "goal": "string", "tactics": [{ "day": 1, "channel": "string", "action": "string", "description": "string — at least 2 actionable sentences" }] }],
-  "budget_allocation": { "channel_name": number },
-  "expected_outcomes": { "reach": "string", "engagement_rate": "string", "conversion_estimate": "string" }
+  "campaign_name": "string — creative name reflecting the product and campaign essence",
+  "methodology": {
+    "name": "string — one of: AIDA, PAS, Storytelling, Scarcity, Social_Proof, Educational",
+    "reasoning": "string — 2-3 sentences explaining why this methodology is the best fit for this specific product and audience"
+  },
+  "campaign_duration_days": ${context.campaignDuration},
+  "strategy_summary": "string — 4-5 sentences describing the overall strategic approach, positioning, key message, and how the campaign builds momentum toward launch day",
+  "target_persona": {
+    "description": "string — 3-4 sentence detailed archetype of the ideal customer",
+    "pain_points": ["string — 3-4 pain points"],
+    "motivations": ["string — 3-4 motivations/desires"]
+  },
+  "key_messages": ["string — 3-5 core messages the entire campaign will reinforce across all channels"],
+  "channel_plan": {
+    "email": {
+      "total_count": "number — decided by you based on duration and product type",
+      "journey_type": "nurture_sequence",
+      "rationale": "string — why this many emails, what the journey achieves",
+      "stages": [{ "stage_name": "string", "day_range": [start, end], "count": "number", "purpose": "string — what this stage achieves", "content_direction": "string — what the content should focus on" }]
+    },
+    "whatsapp": {
+      "total_count": "number — decided by you",
+      "journey_type": "personal_nurture",
+      "audience_context": "string — describe who receives these messages",
+      "rationale": "string",
+      "stages": [{ "stage_name": "string", "day_range": [start, end], "count": "number", "purpose": "string", "content_direction": "string" }]
+    },
+    "instagram": {
+      "total_count": "number — between 5 and 15",
+      "journey_type": "broadcast_awareness",
+      "rationale": "string",
+      "content_mix": { "educational": "number", "social_proof": "number", "offer": "number", "storytelling": "number", "engagement": "number", "product_showcase": "number" },
+      "stages": [{ "stage_name": "string", "day_range": [start, end], "count": "number", "purpose": "string", "content_direction": "string" }]
+    }
+  },
+  "budget_allocation": {
+    "breakdown": { "channel_name": { "amount": "number", "purpose": "string — what this budget covers" } },
+    "total": ${campaignData.budget},
+    "rationale": "string — why this allocation strategy"
+  },
+  "weekly_plan": [{ "week": "number", "theme": "string", "goal": "string", "days_covered": "string (e.g. 'Days 1-7')", "tactics": [{ "day": "number", "channel": "string", "action": "string", "description": "string — 2 actionable sentences", "stage_reference": "string — which journey stage this belongs to" }] }],
+  "expected_outcomes": {
+    "primary_kpi": "string — the single most important metric",
+    "secondary_kpis": ["string"],
+    "success_criteria": "string — what does success look like after the campaign"
+  }${!context.hasContactData ? ',\n  "no_contact_data_notice": "string — note explaining the campaign is ready but customer contact data is needed for WhatsApp and email delivery"' : ''}
 }`;
 
-        const systemPrompt = `You are MiCA, an expert AI marketing strategist specializing in campaigns for small businesses, solo entrepreneurs, and social impact organizations in India. You understand the Indian market deeply — local buying behaviour, cultural nuances, and platforms like WhatsApp and Instagram that dominate Indian digital marketing. Return ONLY valid JSON. No markdown, no preamble.`;
+        const systemPrompt = `You are MiCA, a senior AI marketing strategist with deep expertise in digital marketing for small businesses, solo entrepreneurs, and social impact organizations in India. You understand:
+
+- Marketing methodologies: AIDA, PAS, Storytelling, Scarcity, Social Proof, Educational — and when to use each
+- Channel psychology: WhatsApp and Email are PERSONAL channels for nurturing known contacts through a journey. Instagram is a BROADCAST channel where each post must stand alone for new viewers.
+- Indian market dynamics: local buying behaviour, cultural nuances, WhatsApp-first culture, Instagram as a discovery platform, price sensitivity, trust-building through personal connection
+- Campaign pacing: how to adjust content volume and intensity based on campaign duration (1-45 days)
+
+You DO NOT use templates. You ANALYZE each product deeply and CHOOSE the optimal strategy. A meditation program gets a completely different approach than a budget water filter.
+
+Return ONLY valid JSON. No markdown, no code fences, no preamble.`;
 
         const response = await callAI({ systemPrompt, userPrompt: prompt, temperature: 0.7 });
         const strategyJson = JSON.parse(response.replace(/```json\n?|\n?```/g, '').trim());
 
-        // Save partial strategy
+        // Save strategy to DB
         await supabase.from('campaigns').update({ marketing_plan: strategyJson }).eq('id', campaignData.id);
         return strategyJson;
     };
 
     // --- API CALL 2: EMAILS ---
-    const generateEmails = async (campaignData: Campaign, strategy: any) => {
+    const generateEmails = async (campaignData: Campaign, strategy: any, context: CampaignContext) => {
         const toneDescription = campaignData.tone === 'Custom'
             ? `Custom — ${campaignData.tone_custom_words}`
             : campaignData.tone;
 
-        const prompt = `Generate 5 complete marketing emails for this campaign. Each email must be a FULL, ready-to-send email — not a sample or a draft.
+        // Get email plan from strategy
+        const emailPlan = strategy.channel_plan?.email;
+        const emailCount = emailPlan?.total_count || 5;
+        const emailStages = emailPlan?.stages
+            ? `\n\nJOURNEY STAGES (follow this sequence):\n${emailPlan.stages.map((s: any) => `- ${s.stage_name} (Days ${s.day_range?.[0]}-${s.day_range?.[1]}): ${s.purpose}. Content direction: ${s.content_direction}`).join('\n')}`
+            : '';
+
+        const productKnowledge = context.productDocContent
+            ? `\n\nDETAILED PRODUCT DOCUMENT:\n${context.productDocContent}`
+            : '';
+
+        const prompt = `Generate ${emailCount} complete marketing emails for this campaign. Each email must be a FULL, ready-to-send email.
 
 CAMPAIGN CONTEXT:
 PRODUCT NAME: ${campaignData.product_name}
-PRODUCT DESCRIPTION: ${campaignData.product_description}
+PRODUCT DESCRIPTION: ${campaignData.product_description}${productKnowledge}
 TARGET AUDIENCE: ${campaignData.target_audience}
 LOCATION: ${campaignData.location || 'India (general)'}
 MARKETING BUDGET (this is the client's ad spend — NOT the product price): ₹${campaignData.budget.toLocaleString('en-IN')}
 CAMPAIGN TONE: ${toneDescription}
 CAMPAIGN NAME: ${strategy.campaign_name}
 STRATEGY SUMMARY: ${strategy.strategy_summary}
-TARGET PERSONA: ${strategy.target_persona}
+TARGET PERSONA: ${typeof strategy.target_persona === 'object' ? strategy.target_persona.description : strategy.target_persona}
+METHODOLOGY: ${strategy.methodology?.name} — ${strategy.methodology?.reasoning}
+KEY MESSAGES: ${strategy.key_messages?.join('; ') || 'Not specified'}
+CAMPAIGN DURATION: ${context.campaignDuration} days${emailStages}
 
 Output JSON format:
 {
@@ -273,16 +429,15 @@ Output JSON format:
 }
 
 Rules:
-- 5 emails total, spread over 28 days (e.g. Day 1, 5, 10, 18, 26)
-- Each email must serve a distinct purpose: welcome → educate → proof/testimonial → urgency → last-chance
+- ${emailCount} emails total, distributed across ${context.campaignDuration} days
+- Each email must follow the journey stages above — progressing the reader through the ${strategy.methodology?.name || 'conversion'} journey
 - Match the tone EXACTLY: ${toneDescription}
 - Write for the Indian market — use ₹ for currency, reference Indian cultural context where relevant
 - Every email must be complete and ready to send — no placeholders like [Name] or [Link]
-- Open each email in a way that matches the tone (warm greeting for Warm & Inspirational, professional opener for Professional, etc.)
-- NEVER mention or invent a product price/cost. The marketing budget is NOT the product's price — they are completely different. Only mention pricing if specific pricing info appears in the PRODUCT DESCRIPTION above.
-- NEVER fabricate statistics, testimonials, or specific numbers (e.g. "500+ professionals", "92% of users"). Only use factual claims from the PRODUCT DESCRIPTION. If no stats are provided, focus on benefits and emotional appeal instead.`;
+- NEVER mention or invent a product price/cost. The marketing budget is NOT the product's price. Only mention pricing if specific pricing info appears in the PRODUCT DESCRIPTION above.
+- NEVER fabricate statistics, testimonials, or specific numbers. Only use factual claims from the PRODUCT DESCRIPTION.`;
 
-        const systemPrompt = `You are MiCA, an expert AI marketing email copywriter specializing in campaigns for small businesses and entrepreneurs in India. You write complete, high-converting marketing emails that match the requested tone exactly. You understand Indian consumer psychology, cultural references, and what drives engagement in the Indian market. Use ₹ for currency, write in a way that resonates with Indian audiences. Return ONLY valid JSON. No markdown, no preamble.`;
+        const systemPrompt = `You are MiCA, an expert AI marketing email copywriter specializing in campaigns for small businesses and entrepreneurs in India. You write complete, high-converting marketing emails that match the requested tone exactly. You understand Indian consumer psychology, cultural references, and what drives engagement in the Indian market. You follow the campaign's chosen marketing methodology to structure the email sequence as a deliberate journey. Return ONLY valid JSON. No markdown, no preamble.`;
 
         const response = await callAI({ systemPrompt, userPrompt: prompt, temperature: 0.7 });
         const emailsJson = JSON.parse(response.replace(/```json\n?|\n?```/g, '').trim());
@@ -296,41 +451,54 @@ Rules:
         if (error) throw error;
     };
 
-    // --- API CALL 3: CONTENT ---
-    const generateContent = async (campaignData: Campaign) => {
+    // --- API CALL 3: CONTENT (WhatsApp + Instagram) ---
+    const generateContent = async (campaignData: Campaign, strategy: any, context: CampaignContext) => {
         const toneDescription = campaignData.tone === 'Custom'
             ? `Custom — ${campaignData.tone_custom_words}`
             : campaignData.tone;
 
+        const productKnowledge = context.productDocContent
+            ? `\nDETAILED PRODUCT DOCUMENT:\n${context.productDocContent}`
+            : '';
+
         // WhatsApp Generation
         if (campaignData.recommended_channels.includes('whatsapp')) {
-            const waPrompt = `Generate 12 complete WhatsApp messages for a 4-week marketing campaign. Each message must be a COMPLETE, ready-to-send WhatsApp message — personal, conversational, and action-oriented.
+            const waPlan = strategy.channel_plan?.whatsapp;
+            const waCount = waPlan?.total_count || 8;
+            const waStages = waPlan?.stages
+                ? `\n\nJOURNEY STAGES (follow this sequence):\n${waPlan.stages.map((s: any) => `- ${s.stage_name} (Days ${s.day_range?.[0]}-${s.day_range?.[1]}): ${s.purpose}. Direction: ${s.content_direction}`).join('\n')}`
+                : '';
+
+            const waPrompt = `Generate ${waCount} complete WhatsApp messages for a ${context.campaignDuration}-day marketing campaign. Each message must be a COMPLETE, ready-to-send WhatsApp message — personal, conversational, and action-oriented.
 
 CAMPAIGN CONTEXT:
 PRODUCT NAME: ${campaignData.product_name}
-PRODUCT DESCRIPTION: ${campaignData.product_description}
+PRODUCT DESCRIPTION: ${campaignData.product_description}${productKnowledge}
 TARGET AUDIENCE: ${campaignData.target_audience}
 LOCATION: ${campaignData.location || 'India (general)'}
 MARKETING BUDGET (this is the client's ad spend — NOT the product price): ₹${campaignData.budget.toLocaleString('en-IN')}
 CAMPAIGN TONE: ${toneDescription}
+CAMPAIGN NAME: ${strategy.campaign_name}
+METHODOLOGY: ${strategy.methodology?.name} — ${strategy.methodology?.reasoning}
+KEY MESSAGES: ${strategy.key_messages?.join('; ') || 'Not specified'}
+${waPlan?.audience_context ? `AUDIENCE CONTEXT: ${waPlan.audience_context}` : ''}${waStages}
 
 Output JSON: { "whatsapp_messages": [{ "message_order": 1, "message_text": "string", "message_type": "string", "scheduled_day": 1 }] }
 
-Content Rules for each message:
-- Length: 60-120 words per message (conversational length, not too long)
-- Must feel personal — like a message from a trusted friend or local business owner, NOT a corporate blast
-- Include at least 1 relevant emoji per message (naturally placed, not excessive)
-- Every message must have a clear CTA (e.g. "Reply YES", "Click here", "DM us", "Call now", "Visit today")
-- Write in the exact tone: ${toneDescription}
-- Use ₹ for currency, reference Indian context where relevant
+Content Rules:
+- ${waCount} messages total across ${context.campaignDuration} days
+- Length: 60-120 words per message (conversational, not too long)
+- Must feel personal — like a message from a trusted friend, NOT a corporate blast
+- Include at least 1 relevant emoji per message (naturally placed)
+- Every message must have a clear CTA (e.g. "Reply YES", "Click here", "DM us", "Call now")
+- Follow the journey stages above — each message has a specific purpose in the ${strategy.methodology?.name || 'conversion'} journey
 - message_type options: announcement | follow_up | offer | testimonial | reminder | engagement
-- Vary the message types across the 12 messages to keep the sequence fresh
-- Distribute messages across days 1 to 28 (e.g., Day 1, 3, 5, 7, 10, 12, 14, 17, 19, 21, 24, 28)
-- NEVER mention or invent a product price/cost. The marketing budget is NOT the product's price. Only mention pricing if specific pricing info appears in the PRODUCT DESCRIPTION above.
-- NEVER fabricate statistics, testimonials, or specific numbers (e.g. "500+ professionals", "92% of users"). Only use factual claims from the PRODUCT DESCRIPTION. If no stats are provided, focus on benefits and emotional appeal instead.`;
+- Vary the message types to keep the sequence fresh
+- NEVER mention or invent a product price/cost. Only mention pricing if in the PRODUCT DESCRIPTION.
+- NEVER fabricate statistics or testimonials. Only use facts from the PRODUCT DESCRIPTION.`;
 
             const waResponse = await callAI({
-                systemPrompt: `You are MiCA, an expert WhatsApp marketing copywriter for Indian small businesses. You write WhatsApp messages that feel personal and human — like they come from a trusted local business, not a faceless corporation. Your messages are conversational, warm, culturally relevant to India, and always include a clear next step for the reader. You match the campaign tone exactly. Return ONLY valid JSON. No markdown, no preamble.`,
+                systemPrompt: `You are MiCA, an expert WhatsApp marketing copywriter for Indian small businesses. You write messages that feel personal and human — like they come from a trusted local business. Your messages follow a deliberate journey based on the campaign's marketing methodology. Conversational, warm, culturally relevant to India. Return ONLY valid JSON. No markdown, no preamble.`,
                 userPrompt: waPrompt,
                 temperature: 0.8
             });
@@ -346,33 +514,47 @@ Content Rules for each message:
             }
         }
 
-        // Social Media Generation
+        // Instagram Generation
         if (campaignData.recommended_channels.includes('instagram')) {
-            const socialPrompt = `Generate 15 complete Instagram posts for a 4-week marketing campaign. Each post must be a COMPLETE, scroll-stopping caption — ready to publish as-is.
+            const igPlan = strategy.channel_plan?.instagram;
+            // Guardrail: 5-15 posts
+            const igCount = Math.min(15, Math.max(5, igPlan?.total_count || 10));
+            const igStages = igPlan?.stages
+                ? `\n\nJOURNEY STAGES:\n${igPlan.stages.map((s: any) => `- ${s.stage_name} (Days ${s.day_range?.[0]}-${s.day_range?.[1]}): ${s.purpose}. Direction: ${s.content_direction}`).join('\n')}`
+                : '';
+            const contentMix = igPlan?.content_mix
+                ? `\n\nCONTENT MIX (follow this distribution):\n${Object.entries(igPlan.content_mix).map(([type, count]) => `- ${type}: ${count} posts`).join('\n')}`
+                : '';
+
+            const socialPrompt = `Generate ${igCount} complete Instagram posts for a ${context.campaignDuration}-day marketing campaign. Each post must be a COMPLETE, scroll-stopping caption — ready to publish as-is.
+
+IMPORTANT: Each Instagram post MUST stand alone. Viewers may NOT have seen any previous posts. Do NOT reference "as we mentioned" or "in our last post". Every post introduces the product fresh.
 
 CAMPAIGN CONTEXT:
 PRODUCT NAME: ${campaignData.product_name}
-PRODUCT DESCRIPTION: ${campaignData.product_description}
+PRODUCT DESCRIPTION: ${campaignData.product_description}${productKnowledge}
 TARGET AUDIENCE: ${campaignData.target_audience}
 LOCATION: ${campaignData.location || 'India (general)'}
 MARKETING BUDGET (this is the client's ad spend — NOT the product price): ₹${campaignData.budget.toLocaleString('en-IN')}
 CAMPAIGN TONE: ${toneDescription}
+CAMPAIGN NAME: ${strategy.campaign_name}
+METHODOLOGY: ${strategy.methodology?.name}
+KEY MESSAGES: ${strategy.key_messages?.join('; ') || 'Not specified'}${contentMix}${igStages}
 
 Output JSON: { "social_posts": [{ "post_order": 1, "caption": "string", "hashtags": "string", "scheduled_day": 1, "image_suggestion": "string" }] }
 
-Content Rules for each post:
-- caption: 150-220 words. Must be scroll-stopping — open with a hook (question, bold statement, or relatable observation). Include 2-3 short paragraphs. End with a clear CTA ("Comment below", "DM us", "Link in bio", "Save this post", etc.)
-- hashtags: 5-8 relevant hashtags as a single string (e.g. "#SmallBusiness #MadeInIndia #..."). Mix broad and niche tags. Include at least 1-2 India-specific hashtags.
-- image_suggestion: 1-2 sentence description of the ideal visual for this post (used to generate the image)
-- Write in the exact tone: ${toneDescription}
-- Use ₹ for currency, Indian cultural references where relevant
-- Vary post types across the 15 posts: product showcase, behind-the-scenes, testimonial/social proof, educational/tips, offer/promotion, storytelling
-- Distribute posts evenly across days 1 to 28
-- NEVER mention or invent a product price/cost. The marketing budget is NOT the product's price. Only mention pricing if specific pricing info appears in the PRODUCT DESCRIPTION above.
-- NEVER fabricate statistics, testimonials, or specific numbers (e.g. "500+ professionals", "92% of users"). Only use factual claims from the PRODUCT DESCRIPTION. If no stats are provided, focus on benefits and emotional appeal instead.`;
+Content Rules:
+- ${igCount} posts total across ${context.campaignDuration} days (distribute evenly, not every day)
+- caption: 150-220 words. Scroll-stopping hook → 2-3 short paragraphs → clear CTA
+- hashtags: 5-8 relevant hashtags as a single string. Mix broad and niche. Include India-specific tags.
+- image_suggestion: 1-2 sentence description of the ideal visual for this post
+- Follow the content mix above — create the right balance of post types
+- Each post must STAND ALONE — no references to previous posts
+- NEVER mention or invent a product price/cost. Only mention pricing if in the PRODUCT DESCRIPTION.
+- NEVER fabricate statistics or testimonials. Only use facts from the PRODUCT DESCRIPTION.`;
 
             const socialResponse = await callAI({
-                systemPrompt: `You are MiCA, an expert Instagram content strategist for Indian small businesses and entrepreneurs. You create Instagram captions that stop the scroll, build genuine connection, and drive action. Your captions match the requested tone perfectly, use culturally relevant language for the Indian market, and always include a strong call-to-action. You know how to balance storytelling with sales. Return ONLY valid JSON. No markdown, no preamble.`,
+                systemPrompt: `You are MiCA, an expert Instagram content strategist for Indian small businesses. You create scroll-stopping captions that build genuine connection and drive action. Each post stands alone — you never reference other posts in the campaign. Your content follows the campaign's marketing methodology and content mix strategy. Return ONLY valid JSON. No markdown, no preamble.`,
                 userPrompt: socialPrompt,
                 temperature: 0.8
             });
