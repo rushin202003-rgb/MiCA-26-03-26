@@ -1,42 +1,130 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+﻿/* Full-page canvas */
+.page {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+
+    /* Pitch deck: medium desaturated steel-blue/navy â€” NOT deep black */
+    background:
+        radial-gradient(ellipse 90% 70% at 50% 50%, #1f2f52 0%, #162240 60%, #101829 100%);
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Very subtle diagonal grid (like bottom-right of the slide) */
+.page::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(-45deg,
+            transparent,
+            transparent 40px,
+            rgba(255, 255, 255, 0.018) 40px,
+            rgba(255, 255, 255, 0.018) 41px);
+    pointer-events: none;
+    z-index: 0;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* â”€â”€ Hero text â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.hero-text {
+    position: absolute;
+    top: 50%;
+    left: 8%;
+    transform: translateY(-50%);
+    z-index: 10;
+    max-width: 460px;
+    pointer-events: all;
 }
 
-.card {
-  padding: 2em;
+.brand-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    color: #FF6600;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.read-the-docs {
-  color: #888;
+.brand-label::before {
+    content: 'âœ¦';
+    font-size: 10px;
+}
+
+.hero-headline {
+    font-size: clamp(36px, 4.5vw, 62px);
+    font-weight: 800;
+    line-height: 1.08;
+    color: #e8eeff;
+    margin: 0 0 18px;
+}
+
+/* Orange word â€” no gradient per user request */
+.accent {
+    color: #FF6600;
+}
+
+.hero-sub {
+    font-size: 16px;
+    line-height: 1.65;
+    color: #7a8fb8;
+    margin: 0 0 32px;
+}
+
+.cta-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-primary {
+    padding: 13px 30px;
+    background: linear-gradient(135deg, #FF6600, #FF4400);
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    box-shadow: 0 4px 22px rgba(255, 100, 0, 0.35);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(255, 100, 0, 0.45);
+}
+
+.btn-ghost {
+    padding: 13px 26px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #8899bb;
+    font-size: 15px;
+    font-weight: 600;
+    border: 1.5px solid rgba(136, 153, 187, 0.22);
+    border-radius: 100px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.btn-ghost:hover {
+    border-color: rgba(136, 153, 187, 0.5);
+    color: #c0ccdd;
+}
+
+/* â”€â”€ Wandering hero wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.hero-eye-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin-top: -60px;
+    /* half of 120px size */
+    margin-left: -60px;
+    z-index: 50;
+    pointer-events: all;
+    padding: 12px;
 }

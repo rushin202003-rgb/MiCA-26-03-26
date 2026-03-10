@@ -1,0 +1,105 @@
+/* EyeCharacter.css — ONLY visual properties, NO pixel sizing.
+   All sizes are set via inline style from the component's size prop. */
+
+.eye-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* width + height come from inline style */
+}
+
+.giggle-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  margin: -10px;
+}
+
+.sclera {
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #ffffff 0%, #e0e0e0 100%);
+  box-shadow:
+    inset 0 0 20px rgba(0, 0, 0, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  position: relative;
+  /* width + height from inline style */
+}
+
+/* Iris anchor sits at 42% from top — percentage always correct regardless of size */
+.face-anchor {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+
+.iris-unit {
+  position: absolute;
+  /* top + left set via inline style (-irisSize/2 each) */
+}
+
+.iris {
+  background: radial-gradient(circle at 38% 32%, #FF6600 0%, #CC4400 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 0 0 20% rgba(0, 0, 0, 0.4),
+    0 1px 4px rgba(0, 0, 0, 0.2);
+  /* width + height from inline style */
+}
+
+.pupil {
+  background: radial-gradient(circle at 38% 32%, #2a180a 0%, #080808 100%);
+  border-radius: 50%;
+  position: relative;
+  box-shadow: inset 0 0 30% rgba(0, 0, 0, 0.7);
+  /* width + height from inline style */
+}
+
+.catchlight {
+  border-radius: 50%;
+  position: absolute;
+  /* size + position from inline style */
+}
+
+.catchlight-main {
+  background-color: rgba(255, 255, 255, 0.92);
+}
+
+.catchlight-secondary {
+  background-color: rgba(255, 255, 255, 0.52);
+}
+
+/* Smile anchor at 76% from top — percentage always correct */
+.smile-anchor {
+  position: absolute;
+  top: 76%;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+
+.smile-unit {
+  position: absolute;
+  /* top + left set via inline style */
+}
+
+.smile-svg {
+  display: block;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
+}
+
+.smile-path {
+  fill: transparent;
+  stroke: #3a2510;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
