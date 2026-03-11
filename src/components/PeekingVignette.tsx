@@ -50,20 +50,20 @@ function PeekingEye({ x, y, startX, startY, size, delay, irisColor, gazeX, gazeY
       transition={{ delay: delay / 1000, duration: 0.6, ease: 'backOut' }}
     >
       <div className="peeking-sclera">
-        {/* Iris */}
+        {/* Iris - Restored randomized color, saturated, hard edges */}
         <div style={{
           position: 'absolute', borderRadius: '50%',
           width: irisSize, height: irisSize,
           top: '50%', left: '50%',
           marginTop: -irisSize / 2 + irisOffY,
           marginLeft: -irisSize / 2 + irisOffX,
-          background: `radial-gradient(circle at 38% 32%, ${irisColor}, #7a2200)`,
+          backgroundColor: irisColor,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          {/* Pupil */}
+          {/* Pupil - Pure black hard circle */}
           <div style={{
             width: pupilSize, height: pupilSize, borderRadius: '50%',
-            background: 'radial-gradient(circle at 38% 32%, #2a180a, #080808)',
+            backgroundColor: '#000000',
           }} />
         </div>
       </div>

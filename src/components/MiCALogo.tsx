@@ -25,8 +25,13 @@ const LETTERS: LetterDef[] = [
 ];
 
 export default function MiCALogo() {
-  // Which letter index (0-3) is currently expanding, or -1 for none
+  // Which letter index (0-3) is randomly expanding, or -1 for none
   const [expandedIdx, setExpandedIdx] = useState(-1);
+  // Which letter index is currently being hovered
+  const [hoveredIdx, setHoveredIdx] = useState(-1);
+
+  // The index to actually display (hover takes precedence)
+  const displayIdx = hoveredIdx !== -1 ? hoveredIdx : expandedIdx;
 
   useEffect(() => {
     const cycle = () => {
@@ -51,7 +56,12 @@ export default function MiCALogo() {
   return (
     <div className="flex items-baseline gap-0 select-none" style={{ fontFamily: "'Inter', sans-serif" }}>
       {LETTERS.map((letter, i) => (
-        <span key={i} className="inline-flex items-baseline relative">
+        <span
+          key={i}
+          className="inline-flex items-baseline relative cursor-default transition-transform duration-300 hover:scale-110"
+          onMouseEnter={() => setHoveredIdx(i)}
+          onMouseLeave={() => setHoveredIdx(-1)}
+        >
           {/* The bold letter */}
           <span
             className="font-black text-[#FF7A00] text-glow relative inline-block"
@@ -79,7 +89,7 @@ export default function MiCALogo() {
 
           {/* The expanding full word */}
           <AnimatePresence>
-            {expandedIdx === i && (
+            {displayIdx === i && (
               <motion.span
                 className="font-light text-[#FF7A00]/70 whitespace-nowrap overflow-hidden"
                 style={{
@@ -100,7 +110,7 @@ export default function MiCALogo() {
           </AnimatePresence>
 
           {/* Add slight spacing between letter groups, but not after last */}
-          {i < LETTERS.length - 1 && expandedIdx !== i && (
+          {i < LETTERS.length - 1 && displayIdx !== i && (
             <span style={{ width: '2px' }} />
           )}
         </span>

@@ -48,6 +48,9 @@ export const LandingPage: React.FC = () => {
             title: "Tell Us Everything",
             description: "Your wellness programme, your audience, your launch date. A quick intake captures your unique voice and the social impact you want to create.",
             color: "#FF7A00",
+            borderClass: "border-[#FF7A00]",
+            hoverBorderClass: "hover:border-[#FF7A00]",
+            textColor: "text-[#FF7A00]",
             gradient: "from-[#FF7A00]/5",
             icon: <FileText className="w-12 h-12 text-[#FF7A00] mb-6 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all" />
         },
@@ -55,7 +58,10 @@ export const LandingPage: React.FC = () => {
             number: "2",
             title: "Watch the Plan Unfold",
             description: "MiCA cross-references thousands of successful campaigns to autonomously select the perfect strategy (AIDA, PAS, BAB) for your specific offering.",
-            color: "#A855F7", /* border-purple-500 */
+            color: "#A855F7",
+            borderClass: "border-[#A855F7]",
+            hoverBorderClass: "hover:border-[#A855F7]",
+            textColor: "text-[#A855F7]",
             gradient: "from-purple-500/5",
             icon: <Sparkles className="w-12 h-12 text-purple-400 mb-6 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all" />
         },
@@ -63,7 +69,10 @@ export const LandingPage: React.FC = () => {
             number: "3",
             title: "Sit Back & Launch",
             description: "One click deploys everything: nurture sequences, social proof, and gentle urgency. It runs tirelessly while you focus on teaching and healing.",
-            color: "#10B981", /* border-emerald-500 */
+            color: "#10B981",
+            borderClass: "border-[#10B981]",
+            hoverBorderClass: "hover:border-[#10B981]",
+            textColor: "text-[#10B981]",
             gradient: "from-emerald-500/5",
             icon: <Rocket className="w-12 h-12 text-emerald-400 mb-6 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all" />
         }
@@ -232,45 +241,63 @@ export const LandingPage: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Right Column - 3 Video Layout */}
-                        <div className="relative w-full flex items-center justify-center gap-4 xl:gap-6 px-2" data-interest="videos" style={{ minHeight: '80vh' }}>
+                        {/* Right Column - 3 Video Layout + Tagline */}
+                        <div className="relative w-full flex flex-col items-center justify-center gap-6 px-2 mt-8 lg:mt-0" data-interest="videos" style={{ minHeight: '80vh' }}>
 
-                            {/* Video 1 — slightly lower */}
-                            <div className="relative z-10 flex shrink-0 items-center justify-center transform translate-y-8" style={{ width: '36%', maxWidth: '380px', aspectRatio: '9 / 16' }}>
-                                {/* Peeking eyeball from behind left video */}
-                                <div className="absolute top-[30%] -left-[15%] z-0 transform -rotate-[20deg]">
-                                    <EyeCharacter size={40} />
+                            {/* Video Grid Segment */}
+                            <div className="flex items-center justify-center gap-4 xl:gap-6 w-full relative">
+                                {/* Video 1 — slightly lower */}
+                                <div className="relative z-10 flex shrink-0 items-center justify-center transform translate-y-4" style={{ width: '36%', maxWidth: '380px', aspectRatio: '9 / 16' }}>
+                                    {/* Peeking eyeball from behind left video */}
+                                    <div className="absolute top-[30%] -left-[15%] z-0 transform -rotate-[20deg]">
+                                        <EyeCharacter size={40} />
+                                    </div>
+                                    <div className="absolute inset-0 z-10 bg-gray-800/80 rounded-2xl border border-gray-700 shadow-2xl overflow-hidden pointer-events-none">
+                                        <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity pointer-events-auto">
+                                            <source src="/media/video1.mp4" type="video/mp4" />
+                                        </video>
+                                    </div>
                                 </div>
-                                <div className="absolute inset-0 z-10 bg-gray-800/80 rounded-2xl border border-gray-700 shadow-2xl overflow-hidden pointer-events-none">
-                                    <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity pointer-events-auto">
-                                        <source src="/media/video1.mp4" type="video/mp4" />
-                                    </video>
+                                {/* Video 2 — higher (breaks symmetry) */}
+                                <div className="relative z-20 flex shrink-0 items-center justify-center transform -translate-y-6 scale-105" style={{ width: '36%', maxWidth: '380px', aspectRatio: '9 / 16' }}>
+                                    {/* Peeking eyeball from top-right of center video */}
+                                    <div className="absolute -top-[12%] -right-[15%] z-0 transform rotate-[15deg]">
+                                        <EyeCharacter size={45} />
+                                    </div>
+                                    <div className="absolute inset-0 z-10 bg-gray-800/90 rounded-2xl border border-gray-600 shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden pointer-events-none">
+                                        <video autoPlay loop muted playsInline className="w-full h-full object-cover pointer-events-auto">
+                                            <source src="/media/video2.mp4" type="video/mp4" />
+                                        </video>
+                                    </div>
+                                </div>
+                                {/* Video 3 — middle height */}
+                                <div className="relative z-10 flex shrink-0 items-center justify-center transform translate-y-0" style={{ width: '36%', maxWidth: '380px', aspectRatio: '9 / 16' }}>
+                                    {/* Peeking eyeball from bottom of right video */}
+                                    <div className="absolute -bottom-[10%] -right-[15%] z-0 transform rotate-[45deg]">
+                                        <EyeCharacter size={50} />
+                                    </div>
+                                    {/* Peeking eyeball in between middle and right (placed relative to video 3 left side) */}
+                                    <div className="absolute top-[15%] -left-[20%] z-0 transform rotate-[10deg]">
+                                        <EyeCharacter size={35} />
+                                    </div>
+                                    <div className="absolute inset-0 z-10 bg-gray-900 rounded-2xl border-2 border-indigo-500/30 shadow-2xl overflow-hidden pointer-events-none">
+                                        <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity pointer-events-auto">
+                                            <source src={LANDING_VIDEOS.DEMO_PORTRAIT} type="video/mp4" />
+                                        </video>
+                                    </div>
                                 </div>
                             </div>
-                            {/* Video 2 — higher (breaks symmetry) */}
-                            <div className="relative z-10 flex shrink-0 items-center justify-center transform -translate-y-8 scale-105" style={{ width: '36%', maxWidth: '380px', aspectRatio: '9 / 16' }}>
-                                <div className="absolute inset-0 z-10 bg-gray-800/90 rounded-2xl border border-gray-600 shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden pointer-events-none">
-                                    <video autoPlay loop muted playsInline className="w-full h-full object-cover pointer-events-auto">
-                                        <source src="/media/video2.mp4" type="video/mp4" />
-                                    </video>
-                                </div>
+
+                            {/* NEW Tagline Below Videos (with Bam FX & Impact Lines) */}
+                            <div className="mt-8 relative z-20 animate-in fade-in slide-in-from-bottom-5 duration-1000 delay-300 transform md:-translate-y-4 group cursor-pointer hover-bam">
+
+
+                                <h2 className="relative text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-white uppercase italic text-center leading-tight">
+                                    Your Info in.<br />
+                                    <span className="text-[#FF7A00]">Your Campaign out!</span>
+                                </h2>
                             </div>
-                            {/* Video 3 — middle height */}
-                            <div className="relative z-10 flex shrink-0 items-center justify-center transform translate-y-2" style={{ width: '36%', maxWidth: '380px', aspectRatio: '9 / 16' }}>
-                                {/* Peeking eyeball from bottom of right video */}
-                                <div className="absolute -bottom-[10%] -right-[15%] z-0 transform rotate-[45deg]">
-                                    <EyeCharacter size={50} />
-                                </div>
-                                {/* Peeking eyeball in between middle and right (placed relative to video 3 left side) */}
-                                <div className="absolute top-[15%] -left-[20%] z-0 transform rotate-[10deg]">
-                                    <EyeCharacter size={35} />
-                                </div>
-                                <div className="absolute inset-0 z-10 bg-gray-900 rounded-2xl border-2 border-indigo-500/30 shadow-2xl overflow-hidden pointer-events-none">
-                                    <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity pointer-events-auto">
-                                        <source src={LANDING_VIDEOS.DEMO_PORTRAIT} type="video/mp4" />
-                                    </video>
-                                </div>
-                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -296,22 +323,30 @@ export const LandingPage: React.FC = () => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: "-100px" }}
                                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                                className={`flex flex-col items-center gap-8 md:gap-16 ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} pt-12 md:pt-0`}
+                                className={`flex flex-col items-center gap-8 md:gap-12 ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} pt-12 md:pt-0 relative z-10 w-full max-w-5xl mx-auto`}
                             >
-                                <div className="w-full md:w-1/2 text-left md:text-right">
-                                    <h3 className="text-3xl font-bold text-white mb-4">{step.number}. {step.title}</h3>
-                                    <p className="text-lg text-gray-400 leading-relaxed">{step.description}</p>
+                                {/* The numbered badge */}
+                                <div className={`hidden md:flex flex-col items-center justify-center w-16 h-16 rounded-full bg-[#1e293b] border-2 ${step.borderClass} z-20 shrink-0 shadow-[0_0_20px_rgba(255,122,0,0.3)] mx-auto md:absolute md:left-1/2 md:-translate-x-1/2`}>
+                                    <span className={`${step.textColor} font-bold text-xl`}>{step.number.padStart(2, '0')}</span>
                                 </div>
-                                <div className={`hidden md:flex flex-col items-center justify-center w-16 h-16 rounded-full bg-[#1e293b] border-2 border-[${step.color}] z-10 shrink-0 shadow-[0_0_20px_rgba(255,122,0,0.3)]`}>
-                                    <span className={`text-[${step.color}] font-bold text-xl`}>{step.number.padStart(2, '0')}</span>
-                                </div>
-                                <div className="w-full md:w-1/2">
-                                    <div className={`glass p-8 rounded-2xl relative overflow-hidden group hover:border-[${step.color}]/50 transition-colors text-left accent-bar card-lift`}>
-                                        <div className={`absolute inset-0 bg-gradient-to-br ${step.gradient} to-transparent`}></div>
-                                        {step.icon}
-                                        <div className="h-2 w-1/3 bg-[#FF7A00]/20 rounded-full mb-3"></div>
-                                        <div className="h-2 w-1/2 bg-gray-700/50 rounded-full mb-3"></div>
-                                        <div className="h-2 w-2/3 bg-gray-700/50 rounded-full"></div>
+
+                                {/* The Glass Card containing the text */}
+                                <div className={`w-full md:w-[45%] ${index % 2 === 0 ? 'md:mr-auto' : 'md:ml-auto'}`}>
+                                    <div
+                                        className={`glass p-8 md:p-10 rounded-3xl relative overflow-hidden group border border-white/5 ${step.hoverBorderClass} text-left transition-all duration-500 hover:-translate-y-3 hover:scale-[1.03] hover:bg-white/10`}
+                                        style={{ boxShadow: 'var(--hover-shadow, none)' }}
+                                        onMouseEnter={(e) => e.currentTarget.style.setProperty('--hover-shadow', `0 0 60px ${step.color}80`)}
+                                        onMouseLeave={(e) => e.currentTarget.style.setProperty('--hover-shadow', 'none')}
+                                    >
+                                        <div className={`absolute inset-0 bg-gradient-to-br ${step.gradient} to-transparent opacity-50`}></div>
+
+                                        <div className="relative z-10">
+                                            <div className="flex items-center gap-4 mb-6">
+                                                {step.icon}
+                                                <h3 className="text-2xl md:text-3xl font-bold text-white">{step.title}</h3>
+                                            </div>
+                                            <p className="text-xl text-gray-200 leading-relaxed font-light">{step.description}</p>
+                                        </div>
                                     </div>
                                 </div>
                             </motion.div>
@@ -337,7 +372,7 @@ export const LandingPage: React.FC = () => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: "-50px" }}
                                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                                className="glass p-8 border border-white/5 rounded-2xl hover:-translate-y-2 transition-all duration-300 group hover:border-[#FF7A00]/30 hover:bg-white/[0.03] relative overflow-hidden accent-bar card-lift"
+                                className="glass p-8 border border-white/5 rounded-2xl transition-all duration-500 group hover:scale-[1.05] hover:-translate-y-3 hover:border-[#FF7A00] hover:shadow-[0_0_60px_rgba(255,122,0,0.4)] hover:bg-white/10 relative overflow-hidden"
                             >
                                 <p className={`font-serif text-5xl opacity-40 mb-4 group-hover:opacity-80 transition-opacity ${strategy.color}`}>
                                     {strategy.number}
@@ -395,7 +430,7 @@ export const LandingPage: React.FC = () => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.5, delay: 0.2 + idx * 0.1 }}
-                                className="glass p-8 border-l-4 border-[#FF7A00] rounded-r-2xl transition-all duration-500 hover:scale-[1.03] hover:shadow-xl hover:bg-white/[0.05] relative accent-bar card-lift"
+                                className="glass p-8 border-l-4 border-[#FF7A00] rounded-r-2xl transition-all duration-500 hover:scale-[1.05] hover:shadow-[0_0_60px_rgba(255,122,0,0.4)] hover:bg-white/10 hover:border-l-8 relative"
                             >
                                 <blockquote className="text-lg text-gray-300 leading-relaxed mb-6">
                                     "{testimonial.quote}"
@@ -431,7 +466,7 @@ export const LandingPage: React.FC = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.8 }}
-                        className="glass border border-[#FF7A00]/40 rounded-3xl p-12 md:p-20 text-center shadow-[0_0_100px_rgba(255,122,0,0.25)] relative overflow-hidden bg-gray-900/80 backdrop-blur-xl"
+                        className="glass border border-[#FF7A00]/40 rounded-3xl p-12 md:p-20 text-center shadow-[0_0_100px_rgba(255,122,0,0.25)] relative overflow-hidden bg-gray-900/80 backdrop-blur-xl transition-all duration-500 hover:scale-[1.03] hover:shadow-[0_0_150px_rgba(255,122,0,0.7)] hover:border-[#FF7A00] hover:bg-gray-950 group"
                     >
                         {/* Glow effect inside CTA box to make it pop like Lovable */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[300px] bg-[#FF7A00]/20 blur-[120px] pointer-events-none"></div>
