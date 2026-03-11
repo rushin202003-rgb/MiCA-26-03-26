@@ -124,28 +124,28 @@ export const LandingPage: React.FC = () => {
     ];
 
     const featuredTestimonial = {
-        quoteBefore: "We used to struggle to fill our breathwork workshops. We had a profound method, but no way to reach the people who were quietly suffering from burnout. ",
-        quoteAfter: " gave us a voice. It didn't just automate our marketing; it communicated our message with deep empathy. Our last three retreats sold out completely, and we're reaching more people in need than ever before.",
-        author: "Sarah Chen",
-        title: "Founder, Online Meditation Platform",
-        meta: "Community Growth: +340% YoY",
-        initial: "S"
+        quoteBefore: "I have no marketing background—I just want to teach yoga. ",
+        quoteAfter: " handled the entire strategy for me. Now, my local studio classes are consistently packed.",
+        author: "Marcus Johnson",
+        title: "Yoga & Mindfulness Teacher",
+        meta: "Studio Attendance: +180%",
+        initial: "M"
     };
 
     const testimonials = [
         {
-            quote: "No marketing background at all. I just wanted to teach yoga and help people heal. MiCA walked me through strategy development like a compassionate guide, then executed it flawlessly. My local studio classes are packed with people eager to find their center.",
-            author: "Marcus Johnson",
-            title: "Yoga & Mindfulness Teacher",
-            initial: "M",
-            color: "from-purple-500 to-indigo-500"
-        },
-        {
-            quote: "The automated nurture sequences aren't cold or robotic—they are genuinely caring. We saw a 97% engagement rate. Attendees showed up to our trauma-informed retreat feeling understood, safe, and ready to dive deep on day one.",
+            quote: "The automated emails don't feel robotic at all. Our open rates hit 97%. People arrived at our trauma retreat already feeling safe and understood.",
             author: "Priya Patel",
             title: "Breathwork & Wellness Retreat Director",
             initial: "P",
             color: "from-emerald-500 to-teal-500"
+        },
+        {
+            quote: "We used to struggle to fill our workshops. MiCA changed everything by sharing our message with real empathy. Our last three retreats sold out completely.",
+            author: "Sarah Chen",
+            title: "Founder, Online Meditation Platform",
+            initial: "S",
+            color: "from-orange-500 to-amber-500"
         }
     ];
 
@@ -392,7 +392,7 @@ export const LandingPage: React.FC = () => {
             <section className="py-24 relative border-y border-white/5">
                 <div className="container mx-auto px-4 md:px-8 max-w-[1400px]">
                     <div className="text-center max-w-3xl mx-auto mb-16">
-                        <p className="text-[#FF7A00] font-semibold tracking-wider uppercase text-sm mb-4">Case Evidence</p>
+                        <p className="text-[#FF7A00] font-semibold tracking-wider uppercase text-sm mb-4">Success Stories</p>
                         <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Results That Speak Volumes</h2>
                     </div>
 
