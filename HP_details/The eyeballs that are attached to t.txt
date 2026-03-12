@@ -1,0 +1,6 @@
+The eyeballs that are attached to the three videos, most of the time they should keep looking at the videos. Only sometimes they should look at the mouse pointer so that they keep pointing towards the videos as if they are watching the videos.
+
+We need to have some Fun with this whole concept of when we generate the strategy, assets, and when we launch. We need to play with the Hero Eyeball (Who represents MiCA) and the MiCA orange bold logo text to show these actions "generating, launching" in some kind of animations when these actions happen, to make the whole experience more immersive.
+
+The Mica hero Eyeball redesign to match the visual theme of the website now. Eye ball is flat graphic and bit mismatching with the rest now. Keep backup of the current eyeball so that we dont lose that. Then lets try some change in look. At any point I should be able to just switch back to the old working Eyeball Hero whenever required. 
+

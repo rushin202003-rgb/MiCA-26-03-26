@@ -1141,7 +1141,7 @@ export const Dashboard: React.FC = () => {
                                                         : tab.id === 'social' ? 'border-pink-500 text-pink-400 bg-gradient-to-t from-pink-500/10 to-transparent shadow-[inset_0_-2px_10px_rgba(236,72,153,0.3),0_15px_30px_-5px_rgba(236,72,153,0.25)]'
                                                             : tab.id === 'execution_log' ? 'border-cyan-500 text-cyan-400 bg-cyan-500/10 shadow-[inset_0_-2px_10px_rgba(6,182,212,0.2),0_15px_30px_-5px_rgba(6,182,212,0.25)]'
                                                                 : tab.id === 'video_ads_placeholder' ? 'border-[#FF7A00] text-[#FF7A00] bg-[#FF7A00]/10 shadow-[inset_0_-2px_10px_rgba(255,122,0,0.2),0_15px_30px_-5px_rgba(255,122,0,0.25)]'
-                                                                    : tab.id === 'campaign_live' ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-[inset_0_-2px_10px_rgba(16,185,129,0.2),0_15px_30px_-5px_rgba(16,185,129,0.25)]'
+                                                                    : tab.id === 'campaign_live' ? 'border-[#FF7A00] text-[#FF7A00] bg-[#FF7A00]/15 font-bold shadow-[inset_0_-2px_14px_rgba(255,122,0,0.3),0_15px_35px_-5px_rgba(255,122,0,0.35)]'
                                                                         : 'border-indigo-500 text-indigo-400 bg-indigo-500/10 shadow-[inset_0_-2px_10px_rgba(99,102,241,0.2),0_15px_30px_-5px_rgba(99,102,241,0.25)]'
                                             : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-900/50'
                                             }`}

@@ -162,6 +162,8 @@ export default function MiCALogo({ variant = 'hero' }: { variant?: 'hero' | 'hea
                 style={{
                   fontSize: expandFont,
                   lineHeight: 1,
+                  paddingBottom: '0.2em',
+                  marginBottom: '-0.2em',
                 }}
                 initial={{ width: 0, opacity: 0 }}
                 animate={{ width: 'auto', opacity: 1 }}

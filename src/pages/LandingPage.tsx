@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import WaitlistModal from '../components/WaitlistModal';
 import { Sparkles, FileText, Rocket } from "lucide-react";
 import { Button } from '../components/ui/Button';
 import { Layout } from '../components/Layout';
@@ -106,6 +107,10 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 'modern', onVersionChange }) => {
     const [isBamming, setIsBamming] = useState(false);
+    const [waitlistOpen, setWaitlistOpen] = useState(false);
+    const [waitlistSource, setWaitlistSource] = useState<'hero' | 'cta'>('hero');
+
+    const openWaitlist = (source: 'hero' | 'cta') => { setWaitlistSource(source); setWaitlistOpen(true); };
 
     const handleBamEnter = () => {
         if (!isBamming) {
@@ -238,6 +243,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
     });
 
     return (
+        <>
         <Layout>
             {/* Hero Section */}
             <section className="relative min-h-screen flex flex-col justify-start pt-16 pb-20 overflow-hidden">
@@ -269,11 +275,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
 
                             <div className="flex flex-col sm:flex-row gap-5 relative z-20" data-interest="buttons">
                                 <Link to="/create-campaign">
-                                    <Button variant="custom" size="lg" className="bg-[#FF7A00] hover:bg-[#FF6600] text-white px-10 py-6 text-lg rounded-full shadow-lg shadow-[#FF7A00]/20 transition-all transform hover:scale-105 border-none">
+                                    <Button variant="custom" size="lg" className="bg-[#FF7A00] hover:bg-[#FF6600] text-white font-extrabold px-10 py-6 text-xl rounded-full shadow-[0_0_18px_4px_rgba(255,122,0,0.4)] transition-all transform hover:scale-105 border-none hover:shadow-[0_0_28px_8px_rgba(255,122,0,0.9)]">
                                         Create your campaign
                                     </Button>
                                 </Link>
-                                <Button size="lg" variant="outline" className="border-gray-500 text-gray-300 hover:bg-white/10 px-10 py-6 text-lg rounded-full backdrop-blur-sm">
+                                <Button size="lg" variant="outline" onClick={() => openWaitlist('hero')} className="border-white/50 text-white font-normal hover:bg-white/10 hover:text-white px-10 py-6 text-base rounded-full backdrop-blur-sm">
                                     Join the waitlist
                                 </Button>
                             </div>
@@ -525,17 +531,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
                         </p>
 
                         <div className="flex flex-col sm:flex-row justify-center gap-6 relative z-10">
-                            <Link to="/create-campaign" className="w-full sm:w-auto">
-                                <Button variant="custom" size="lg" className="bg-[#FF7A00] hover:bg-[#FF8800] text-white px-14 py-8 text-xl font-bold rounded-full w-full shadow-[0_0_40px_rgba(255,122,0,0.6)] hover:shadow-[0_0_60px_rgba(255,122,0,0.8)] transition-all hover:-translate-y-1 border-none">
-                                    Claim My Spot
-                                </Button>
-                            </Link>
+                            <Button variant="custom" size="lg" onClick={() => openWaitlist('cta')} className="bg-[#FF7A00] hover:bg-[#FF8800] text-white px-14 py-8 text-xl font-bold rounded-full shadow-[0_0_40px_rgba(255,122,0,0.6)] hover:shadow-[0_0_60px_rgba(255,122,0,0.8)] transition-all hover:-translate-y-1 border-none">
+                                Claim My Spot
+                            </Button>
                         </div>
                         <p className="mt-10 text-gray-400 text-sm relative z-10 font-medium tracking-wide uppercase">Limited spots available for our upcoming beta.</p>
                     </motion.div>
                 </div>
             </section>
+
         </Layout>
+
+        <WaitlistModal
+            visible={waitlistOpen}
+            source={waitlistSource}
+            onClose={() => setWaitlistOpen(false)}
+        />
+        </>
     );
 }
 

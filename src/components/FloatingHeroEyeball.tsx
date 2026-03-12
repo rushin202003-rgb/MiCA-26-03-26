@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSpring, motion } from 'framer-motion';
 import { useAnimationContext } from '../context/AnimationContext';
 import EyeCharacter from './EyeCharacter';
+import { useEyeballMood } from '../contexts/EyeballMoodContext';
 
 interface Props {
   onGiggle: () => void;
@@ -9,6 +10,8 @@ interface Props {
 }
 
 export default function FloatingHeroEyeball({ onGiggle, version = 'modern' }: Props) {
+  const { mood, setMood, concentrationProgress } = useEyeballMood();
+
   // Start roughly center right
   const [targetPos, setTargetPos] = useState({
     x: typeof window !== 'undefined' ? window.innerWidth * 0.75 : 800,
@@ -54,7 +57,44 @@ export default function FloatingHeroEyeball({ onGiggle, version = 'modern' }: Pr
     springY.set(targetPos.y);
   }, [targetPos, springX, springY]);
 
+  // ── Concentration: lock eyeball near the progress area ─────────────────
   useEffect(() => {
+    if (mood === 'concentrating') {
+      isChasingRef.current = false;
+      // Position to the right of the generation card (roughly 70% width, 45% height)
+      setTargetPos({
+        x: window.innerWidth * 0.70,
+        y: window.innerHeight * 0.45,
+      });
+    }
+  }, [mood]);
+
+  // ── Step-completion bounce: brief spring impulse when progress changes ──
+  const prevProgressRef = useRef(concentrationProgress);
+  useEffect(() => {
+    if (mood === 'concentrating' && concentrationProgress > prevProgressRef.current) {
+      // Quick bounce: offset briefly then snap back
+      const baseY = window.innerHeight * 0.45;
+      setTargetPos(prev => ({ ...prev, y: baseY - 30 }));
+      setTimeout(() => {
+        setTargetPos(prev => ({ ...prev, y: baseY }));
+      }, 300);
+    }
+    prevProgressRef.current = concentrationProgress;
+  }, [concentrationProgress, mood]);
+
+  // ── Launch complete handler ────────────────────────────────────────────
+  const handleLaunchComplete = useCallback(() => {
+    // After rocket animation finishes, go back to idle after a brief excited pause
+    setTimeout(() => {
+      setMood('idle');
+    }, 2000);
+  }, [setMood]);
+
+  useEffect(() => {
+    // Skip autonomous brain when not idle
+    if (mood !== 'idle') return;
+
     let mouseX = window.innerWidth / 2;
     let mouseY = window.innerHeight / 2;
 
@@ -126,7 +166,7 @@ export default function FloatingHeroEyeball({ onGiggle, version = 'modern' }: Pr
       window.removeEventListener('mousemove', handleMouseMove);
       clearTimeout(activeTimeout);
     };
-  }, []);
+  }, [mood]);
 
   // Jump to specific coordinates depending on the mode
   useEffect(() => {
@@ -160,7 +200,16 @@ export default function FloatingHeroEyeball({ onGiggle, version = 'modern' }: Pr
         pointerEvents: 'auto'
       }}
     >
-      <EyeCharacter size={100} onGiggle={onGiggle} version={version} />
+      <EyeCharacter
+        size={100}
+        onGiggle={onGiggle}
+        version={version}
+        isConcentrating={mood === 'concentrating'}
+        concentrationProgress={concentrationProgress}
+        isDizzy={mood === 'dizzy'}
+        isLaunching={mood === 'launching'}
+        onLaunchComplete={handleLaunchComplete}
+      />
     </motion.div>
   );
 }
