@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AnimationProvider } from './context/AnimationContext';
+import { EyeballMoodProvider } from './contexts/EyeballMoodContext';
 import FloatingHeroEyeball from './components/FloatingHeroEyeball';
 import PeekingVignette from './components/PeekingVignette';
 import { DemoModeToggle } from './components/DemoModeToggle';
@@ -80,6 +81,7 @@ function App() {
     <Router>
       <AuthProvider>
         <AnimationProvider>
+          <EyeballMoodProvider>
           <DemoModeToggle />
 
         {/* The global vignette layer */}
@@ -113,6 +115,7 @@ function App() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+          </EyeballMoodProvider>
         </AnimationProvider>
       </AuthProvider>
     </Router>
