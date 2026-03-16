@@ -1,4 +1,4 @@
-﻿/* Full-page canvas */
+/* Full-page canvas */
 .page {
     width: 100vw;
     height: 100vh;
@@ -180,5 +180,12 @@
 
     80% {
         transform: translate(2px, 3px) rotate(3deg);
+    }
+}
+
+/* ── Doodle Map: noodle draw-in animation ── */
+@keyframes drawNoodle {
+    to {
+        stroke-dashoffset: 0;
     }
 }

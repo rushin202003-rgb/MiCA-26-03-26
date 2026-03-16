@@ -18,6 +18,7 @@ const EyeballMoodContext = createContext<EyeballMoodContextType | null>(null);
 export function EyeballMoodProvider({ children }: { children: ReactNode }) {
   const [mood, setMood] = useState<EyeballMood>('idle');
   const [concentrationProgress, setConcentrationProgress] = useState(0);
+  const [concentrationStepIndex, setConcentrationStepIndex] = useState(0);
   const dizzyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const triggerDizzy = useCallback((fallbackMood: EyeballMood = 'idle', durationMs = 2500) => {
@@ -33,6 +34,7 @@ export function EyeballMoodProvider({ children }: { children: ReactNode }) {
     <EyeballMoodContext.Provider value={{
       mood, setMood,
       concentrationProgress, setConcentrationProgress,
+      concentrationStepIndex, setConcentrationStepIndex,
       triggerDizzy,
     }}>
       {children}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSpring, motion } from 'framer-motion';
 import { useAnimationContext } from '../context/AnimationContext';
 import EyeCharacter from './EyeCharacter';
@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function FloatingHeroEyeball({ onGiggle, version = 'modern' }: Props) {
-  const { mood, setMood, concentrationProgress } = useEyeballMood();
+  const { mood, concentrationProgress } = useEyeballMood();
 
   // Start roughly center right
   const [targetPos, setTargetPos] = useState({
@@ -82,14 +82,6 @@ export default function FloatingHeroEyeball({ onGiggle, version = 'modern' }: Pr
     }
     prevProgressRef.current = concentrationProgress;
   }, [concentrationProgress, mood]);
-
-  // ── Launch complete handler ────────────────────────────────────────────
-  const handleLaunchComplete = useCallback(() => {
-    // After rocket animation finishes, go back to idle after a brief excited pause
-    setTimeout(() => {
-      setMood('idle');
-    }, 2000);
-  }, [setMood]);
 
   useEffect(() => {
     // Skip autonomous brain when not idle
@@ -204,11 +196,6 @@ export default function FloatingHeroEyeball({ onGiggle, version = 'modern' }: Pr
         size={100}
         onGiggle={onGiggle}
         version={version}
-        isConcentrating={mood === 'concentrating'}
-        concentrationProgress={concentrationProgress}
-        isDizzy={mood === 'dizzy'}
-        isLaunching={mood === 'launching'}
-        onLaunchComplete={handleLaunchComplete}
       />
     </motion.div>
   );
