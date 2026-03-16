@@ -105,7 +105,7 @@ interface LandingPageProps {
     onVersionChange?: (version: 'modern' | 'classic') => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 'modern', onVersionChange }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 'modern', onVersionChange: _onVersionChange }) => {
     const [isBamming, setIsBamming] = useState(false);
     const [waitlistOpen, setWaitlistOpen] = useState(false);
     const [waitlistSource, setWaitlistSource] = useState<'hero' | 'cta'>('hero');

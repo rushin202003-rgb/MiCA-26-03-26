@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { supabase } from '../../lib/supabase';
-import { Mail, MessageSquare, Instagram, CheckCircle2, Clock, PlayCircle, Calendar, PauseCircle, Eye, X, Zap } from 'lucide-react';
+import { Mail, MessageSquare, Instagram, CheckCircle2, Clock, Calendar, PauseCircle, X, Zap } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { DEMO_MODE_ENABLED, DEMO_CAMPAIGN } from '../../data/demoData';
 

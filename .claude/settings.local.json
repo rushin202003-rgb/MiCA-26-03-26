@@ -6,7 +6,32 @@
       "Bash(git push origin main)",
       "Bash(git remote set-url origin https://github.com/DisruptionInc/MiCA-DemoDay.git)",
       "Bash(git fetch origin)",
-      "Bash(git show 507f650 --no-stat -p)"
+      "Bash(git show 507f650 --no-stat -p)",
+      "Bash(npm install)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npx tsc:*)",
+      "Bash(cd \"E:/AI Data/Mica-app\" && npm run dev)",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "mcp__plugin_playwright_playwright__browser_console_messages",
+      "mcp__plugin_playwright_playwright__browser_hover",
+      "mcp__plugin_playwright_playwright__browser_click",
+      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && npx --yes ffmpeg-static 2>&1 | head -5)",
+      "Bash(where ffmpeg:*)",
+      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && npm install fluent-ffmpeg @ffmpeg/ffmpeg --save-dev 2>&1 | tail -5)",
+      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && node -e \"\nconst path = require\\('path'\\);\nconst ffmpegPath = require\\('@ffmpeg/ffmpeg'\\);\nconsole.log\\(ffmpegPath\\);\n\" 2>&1)",
+      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && npm install ffmpeg-static --save-dev 2>&1 | tail -3)",
+      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && node -e \"\nconst ffmpegPath = require\\('ffmpeg-static'\\);\nconsole.log\\('ffmpeg binary:', ffmpegPath\\);\nconst { execSync } = require\\('child_process'\\);\nconst result = execSync\\('\\\\\"' + ffmpegPath + '\\\\\" -version 2>&1'\\);\nconsole.log\\(result.toString\\(\\).split\\('\\\\n'\\)[0]\\);\n\")",
+      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && node -e \"\nconst ffmpegPath = require\\('ffmpeg-static'\\);\nconst { execSync } = require\\('child_process'\\);\nconst input = 'public/media/video1.mp4';\nconst output = 'public/media/video1_opt.mp4';\nconsole.log\\('Optimizing video1.mp4 for web streaming...'\\);\nexecSync\\('\\\\\"' + ffmpegPath + '\\\\\" -i \\\\\"' + input + '\\\\\" -movflags +faststart -c:v copy -c:a copy \\\\\"' + output + '\\\\\" -y', { stdio: 'inherit' }\\);\nconsole.log\\('Done!'\\);\n\")",
+      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && mv public/media/video1_opt.mp4 public/media/video1.mp4 && ls -la public/media/)",
+      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && node -e \"\nconst ffmpegPath = require\\('ffmpeg-static'\\);\nconst { execSync } = require\\('child_process'\\);\nconst input = 'public/media/video1.mp4';\nconst output = 'public/media/video1_h264.mp4';\nconsole.log\\('Re-encoding to H.264 with faststart...'\\);\nexecSync\\('\\\\\"' + ffmpegPath + '\\\\\" -i \\\\\"' + input + '\\\\\" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -movflags +faststart -vf scale=720:-2 \\\\\"' + output + '\\\\\" -y', { stdio: 'inherit' }\\);\nconsole.log\\('Done!'\\);\n\")",
+      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && mv public/media/video1_h264.mp4 public/media/video1.mp4 && ls -lh public/media/)",
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "mcp__plugin_playwright_playwright__browser_run_code",
+      "mcp__plugin_playwright_playwright__browser_network_requests",
+      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && node -e \"\nconst ffmpegPath = require\\('ffmpeg-static'\\);\nconst { spawnSync } = require\\('child_process'\\);\nconst r = spawnSync\\(ffmpegPath, ['-i', 'public/media/video2.mp4'], { encoding: 'utf8' }\\);\nconst out = r.stderr || r.stdout;\nconst lines = out.split\\('\\\\n'\\).filter\\(l => l.match\\(/Video:|Audio:|Duration/\\)\\);\nconsole.log\\(lines.join\\('\\\\n'\\)\\);\n\")",
+      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && node -e \"\nconst ffmpegPath = require\\('ffmpeg-static'\\);\nconst { spawnSync } = require\\('child_process'\\);\nconst r = spawnSync\\(ffmpegPath, ['-i', 'public/media/video1.mp4'], { encoding: 'utf8' }\\);\nconst out = r.stderr || r.stdout;\nconst lines = out.split\\('\\\\n'\\).filter\\(l => l.match\\(/Video:|Audio:|Duration/\\)\\);\nconsole.log\\(lines.join\\('\\\\n'\\)\\);\n\")",
+      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && node -e \"\nconst ffmpegPath = require\\('ffmpeg-static'\\);\nconst { spawnSync } = require\\('child_process'\\);\nconst r = spawnSync\\(ffmpegPath, [\n  '-i', 'public/media/video1.mp4',\n  '-c:v', 'libx264',\n  '-preset', 'fast',\n  '-crf', '23',\n  '-vf', 'scale=720:-2,format=yuv420p',\n  '-colorspace', 'bt709',\n  '-color_primaries', 'bt709',\n  '-color_trc', 'bt709',\n  '-c:a', 'aac',\n  '-b:a', '128k',\n  '-movflags', '+faststart',\n  'public/media/video1_fix.mp4',\n  '-y'\n], { encoding: 'utf8', stdio: 'inherit' }\\);\nconsole.log\\('exit code:', r.status\\);\n\")"
     ]
   }
 }
