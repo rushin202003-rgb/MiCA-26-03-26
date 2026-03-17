@@ -1,8 +1,17 @@
 import React, { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { NODE_POSITIONS, MICA_ORANGE, MICA_ORANGE_GLOW, NODE_BG, LABEL_COLOR } from './constants';
+import { NODE_POSITIONS, MICA_ORANGE, MICA_ORANGE_GLOW } from './constants';
 import type { NodeDef, FormValues } from './types';
 import { INDIAN_CITIES } from './indianCities';
+
+function alarmArcD(cx: number, cy: number, r: number, startDeg: number, endDeg: number): string {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const x1 = cx + r * Math.cos(toRad(startDeg));
+  const y1 = cy + r * Math.sin(toRad(startDeg));
+  const x2 = cx + r * Math.cos(toRad(endDeg));
+  const y2 = cy + r * Math.sin(toRad(endDeg));
+  return `M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`;
+}
 
 function seededWobble(seed: string) {
   let h = 0;
@@ -180,44 +189,88 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
             transition: 'width 0.4s ease, height 0.4s ease',
           }}
         >
-          <motion.div
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: isStart ? 3.2 : 4, repeat: Infinity, ease: 'easeInOut' }}
+          {/* Ripple highlights the currently active node, including the start node */}
+          {isActive && (
+            <div className="doodle-ripple" />
+          )}
+
+          {/* Alarm-bell wobble arcs while typing */}
+          {isActive && !isActionButton && (node.inputType === 'text' || node.inputType === 'textarea') && currentValue.trim() && (
+            <svg
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible', pointerEvents: 'none', zIndex: 5 }}
+              viewBox={`0 0 ${diameter} ${diameter}`}
+            >
+              {/* Upper-left arcs (~45° counter-clockwise from top) */}
+              <g className="alarm-arcs-left">
+                <path d={alarmArcD(diameter / 2, diameter / 2, diameter * 0.58, 210, 243)} fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="3" strokeLinecap="round" />
+                <path d={alarmArcD(diameter / 2, diameter / 2, diameter * 0.67, 214, 238)} fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" />
+              </g>
+              {/* Upper-right arcs (~45° clockwise from top) */}
+              <g className="alarm-arcs-right">
+                <path d={alarmArcD(diameter / 2, diameter / 2, diameter * 0.58, 297, 330)} fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="3" strokeLinecap="round" />
+                <path d={alarmArcD(diameter / 2, diameter / 2, diameter * 0.67, 302, 326)} fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" />
+              </g>
+            </svg>
+          )}
+
+          {/* Start node floats gently to feel \"alive\" */}
+          {isStart ? (
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+              onClick={handleNodeBodyClick}
+              style={{
+                width: '100%',
+                height: '100%',
+                ...wobble,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                background: `linear-gradient(135deg, ${MICA_ORANGE}, #FF4400)`,
+                border: 'none',
+                boxShadow: `0 0 55px rgba(255,90,0,0.5)`,
+                backdropFilter: 'blur(12px)',
+                padding: 0,
+                cursor: 'pointer',
+                transition: 'box-shadow 0.3s ease',
+              }}
+            >
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <div onClick={onStart} style={{ textAlign: 'center', cursor: 'pointer' }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
+                    Start
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+          <div
             onClick={handleNodeBodyClick}
             style={{
               width: '100%',
               height: '100%',
               ...wobble,
+              position: 'relative',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               overflow: node.id === 'location' && cityInputMode ? 'visible' : 'hidden',
-              background: isActionButton
-                ? `linear-gradient(135deg, ${MICA_ORANGE}, #FF4400)`
-                : NODE_BG,
+              // All non-start nodes use the same orange/white branding
+              background: `linear-gradient(135deg, ${MICA_ORANGE}, #FF4400)`,
               border: isActionButton ? 'none' : `2px solid ${MICA_ORANGE}`,
               boxShadow: isActionButton
-                ? `0 0 55px rgba(255,90,0,0.5)`
+                ? `0 0 40px rgba(255,90,0,0.45)`
                 : isActive
-                  ? `0 0 0 3px ${MICA_ORANGE_GLOW}, 0 0 40px rgba(255,122,0,0.2)`
-                  : `0 0 20px rgba(255,122,0,0.15)`,
-              backdropFilter: 'blur(20px)',
+                  ? `0 0 0 3px ${MICA_ORANGE_GLOW}, 0 0 36px rgba(255,122,0,0.25)`
+                  : `0 0 22px rgba(255,122,0,0.18)`,
+              backdropFilter: 'blur(12px)',
               padding: isActionButton ? 0 : 20,
               cursor: isActionButton ? 'pointer' : (!isActive ? 'pointer' : 'default'),
               transition: 'box-shadow 0.3s ease',
             }}
           >
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-            {isStart && (
-              <div onClick={onStart} style={{ textAlign: 'center', cursor: 'pointer' }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
-                  Start
-                </div>
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', marginTop: 6, letterSpacing: 1, textTransform: 'uppercase' }}>
-                  Tap
-                </div>
-              </div>
-            )}
 
             {isLetsGo && (
               <div onClick={onFinish} style={{ textAlign: 'center', cursor: 'pointer' }}>
@@ -229,12 +282,13 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
 
             {!isActionButton && (
               <>
+                {/* Heading label (e.g. CAMPAIGN NAME, WHAT'S THIS FOR?) – match Start style */}
                 <div style={{
-                  fontSize: 9.5,
-                  fontWeight: 700,
-                  letterSpacing: '1.4px',
-                  textTransform: 'uppercase',
-                  color: LABEL_COLOR,
+                  fontSize: 28,
+                  fontWeight: 800,
+                  letterSpacing: '-1px',
+                  textTransform: 'none',
+                  color: '#fff',
                   textAlign: 'center',
                 }}>
                   {node.label}
@@ -242,15 +296,15 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
 
                 {!isActive && currentValue && (
                   <div style={{
-                    fontSize: 15,
-                    fontWeight: 700,
+                    fontSize: 18,
+                    fontWeight: 600,
                     color: '#fff',
                     textAlign: 'center',
                     maxWidth: '85%',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: node.inputType === 'textarea' ? 'pre-wrap' : 'nowrap',
-                    lineHeight: 1.3,
+                    lineHeight: 1.35,
                   }}>
                     {currentValue}
                   </div>
@@ -282,15 +336,15 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                         textAlign: 'center',
                         outline: 'none',
                         width: '100%',
-                        padding: '5px 2px',
-                        fontSize: 14,
-                        fontWeight: 600,
+                        padding: '10px 6px',
+                        fontSize: 22,
+                        fontWeight: 700,
                       }}
                     />
                     {currentValue.trim() && (
                       <div
                         onClick={onAdvance}
-                        style={{ fontSize: 10.5, color: MICA_ORANGE, cursor: 'pointer', fontWeight: 700, marginTop: 8, opacity: 0.85 }}
+                        style={{ fontSize: 14, color: '#fff', background: 'rgba(0,0,0,0.35)', borderRadius: 9999, padding: '4px 12px', cursor: 'pointer', fontWeight: 700, marginTop: 10, opacity: 0.95 }}
                       >
                         press Enter ↓
                       </div>
@@ -317,8 +371,8 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                         textAlign: 'center',
                         outline: 'none',
                         width: '100%',
-                        padding: '5px 2px',
-                        fontSize: 14,
+                        padding: '8px 4px',
+                        fontSize: 20,
                         fontWeight: 600,
                       }}
                     />
@@ -330,7 +384,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                     {isBudgetValid(currentValue) && (
                       <div
                         onClick={onAdvance}
-                        style={{ fontSize: 10.5, color: MICA_ORANGE, cursor: 'pointer', fontWeight: 700, marginTop: 8, opacity: 0.85 }}
+                        style={{ fontSize: 14, color: '#fff', background: 'rgba(0,0,0,0.35)', borderRadius: 9999, padding: '4px 12px', cursor: 'pointer', fontWeight: 700, marginTop: 10, opacity: 0.95 }}
                       >
                         press Enter ↓
                       </div>
@@ -356,8 +410,8 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                         textAlign: 'center',
                         outline: 'none',
                         width: '100%',
-                        padding: '5px 2px',
-                        fontSize: 12,
+                        padding: '8px 4px',
+                        fontSize: 18,
                         lineHeight: 1.55,
                         resize: 'none',
                       }}
@@ -365,7 +419,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                     {currentValue.trim() && (
                       <div
                         onClick={onAdvance}
-                        style={{ fontSize: 10.5, color: MICA_ORANGE, cursor: 'pointer', fontWeight: 700, marginTop: 8, opacity: 0.85 }}
+                        style={{ fontSize: 14, color: '#fff', background: 'rgba(0,0,0,0.35)', borderRadius: 9999, padding: '4px 12px', cursor: 'pointer', fontWeight: 700, marginTop: 10, opacity: 0.95 }}
                       >
                         next →
                       </div>
@@ -391,15 +445,15 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                         textAlign: 'center',
                         outline: 'none',
                         width: '100%',
-                        padding: '5px 2px',
-                        fontSize: 13,
+                        padding: '8px 4px',
+                        fontSize: 18,
                         colorScheme: 'dark',
                       }}
                     />
                     {currentValue && (
                       <div
                         onClick={onAdvance}
-                        style={{ fontSize: 10.5, color: MICA_ORANGE, cursor: 'pointer', fontWeight: 700, marginTop: 8, opacity: 0.85 }}
+                        style={{ fontSize: 14, color: '#fff', background: 'rgba(0,0,0,0.35)', borderRadius: 9999, padding: '4px 14px', cursor: 'pointer', fontWeight: 700, marginTop: 10, opacity: 0.95 }}
                       >
                         confirm →
                       </div>
@@ -408,18 +462,18 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                 )}
 
                 {isActive && node.inputType === 'yesno' && node.id !== 'attachDoc' && (
-                  <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+                  <div style={{ display: 'flex', gap: 14, marginTop: 10 }}>
                     <button
                       type="button"
                       onClick={() => onYesNo(node.id, true)}
                       style={{
-                        padding: '7px 20px',
-                        borderRadius: 20,
+                        padding: '10px 26px',
+                        borderRadius: 9999,
                         border: `1.5px solid ${yesNoAnswer === true ? MICA_ORANGE : 'rgba(255,255,255,0.35)'}`,
                         background: yesNoAnswer === true ? MICA_ORANGE : 'transparent',
                         color: '#fff',
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: 12,
+                        fontSize: 16,
                         cursor: 'pointer',
                         fontWeight: 600,
                       }}
@@ -430,13 +484,13 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                       type="button"
                       onClick={() => onYesNo(node.id, false)}
                       style={{
-                        padding: '7px 20px',
-                        borderRadius: 20,
+                        padding: '10px 26px',
+                        borderRadius: 9999,
                         border: `1.5px solid ${yesNoAnswer === false ? MICA_ORANGE : 'rgba(255,255,255,0.35)'}`,
                         background: yesNoAnswer === false ? MICA_ORANGE : 'transparent',
                         color: '#fff',
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: 12,
+                        fontSize: 16,
                         cursor: 'pointer',
                         fontWeight: 600,
                       }}
@@ -500,18 +554,18 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                 )}
 
                 {isActive && node.inputType === 'choice' && node.id === 'location' && !cityInputMode && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6, justifyContent: 'center' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 10, justifyContent: 'center' }}>
                     <button
                       type="button"
                       onClick={() => setCityInputMode(true)}
                       style={{
-                        padding: '7px 16px',
-                        borderRadius: 20,
+                        padding: '10px 26px',
+                        borderRadius: 9999,
                         border: '1.5px solid rgba(255,255,255,0.35)',
                         background: 'transparent',
                         color: '#fff',
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: 11,
+                        fontSize: 16,
                         cursor: 'pointer',
                         fontWeight: 600,
                         whiteSpace: 'nowrap',
@@ -523,13 +577,13 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                       type="button"
                       onClick={() => onChoice(node.id, 'Online')}
                       style={{
-                        padding: '7px 16px',
-                        borderRadius: 20,
+                        padding: '10px 26px',
+                        borderRadius: 9999,
                         border: `1.5px solid ${currentValue === 'Online' ? MICA_ORANGE : 'rgba(255,255,255,0.35)'}`,
                         background: currentValue === 'Online' ? MICA_ORANGE : 'transparent',
                         color: '#fff',
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: 11,
+                        fontSize: 16,
                         cursor: 'pointer',
                         fontWeight: 600,
                         whiteSpace: 'nowrap',
@@ -641,7 +695,8 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
               </>
             )}
             </div>
-          </motion.div>
+          </div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>

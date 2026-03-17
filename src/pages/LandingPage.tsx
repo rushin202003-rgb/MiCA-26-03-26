@@ -255,13 +255,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
 
                         {/* Left Column - Content */}
                         <div className="text-left animate-in slide-in-from-bottom-5 duration-1000">
-                            {/* MiCA Animated Acronym Logo */}
-                            <div className="mb-4 md:mb-6 pb-2">
+                            {/* MiCA Animated Acronym Logo — fixed height so expansion doesn't shift videos */}
+                            <div className="h-[110px] md:h-[140px] lg:h-[180px] mb-4 md:mb-6 pb-2 flex flex-col justify-start">
                                 <MiCALogo />
                             </div>
 
-                            {/* Flexible height container to prevent jumping/overlap */}
-                            <div className="min-h-[120px] md:min-h-[160px] lg:min-h-[200px] mb-8">
+                            {/* Fixed height so typewriter length changes don't shift buttons/videos */}
+                            <div className="h-[140px] md:h-[180px] lg:h-[220px] xl:h-[240px] mb-8 flex flex-col justify-start">
                                 <h1 className="text-5xl md:text-6xl xl:text-7xl font-bold text-white tracking-tight leading-tight">
                                     Marketing that <br />
                                     <span className="text-[#FF7A00] italic font-serif opacity-90">{typewriterText}</span>
@@ -305,7 +305,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
                                 {/* Video 2 — higher (breaks symmetry) */}
                                 <div className="relative z-20 flex shrink-0 items-center justify-center transform -translate-y-6 scale-105" style={{ width: '36%', maxWidth: '380px', aspectRatio: '9 / 16' }}>
                                     {/* Peeking eyeball from top-right of center video */}
-                                    <div className="absolute -top-[12%] -right-[15%] z-0 transform rotate-[15deg]">
+                                    <div className="absolute -top-[8%] -right-[8%] z-0 transform rotate-[15deg]">
                                         <EyeCharacter size={45} version={eyeVersion} />
                                     </div>
                                     <div className="absolute inset-0 z-10 bg-gray-800/90 rounded-2xl border border-gray-600 shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden pointer-events-none">
@@ -319,10 +319,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
                                     {/* Peeking eyeball from bottom of right video */}
                                     <div className="absolute -bottom-[10%] -right-[15%] z-0 transform rotate-[45deg]">
                                         <EyeCharacter size={50} version={eyeVersion} />
-                                    </div>
-                                    {/* Peeking eyeball in between middle and right (placed relative to video 3 left side) */}
-                                    <div className="absolute top-[15%] -left-[20%] z-0 transform rotate-[10deg]">
-                                        <EyeCharacter size={35} version={eyeVersion} />
                                     </div>
                                     <div className="absolute inset-0 z-10 bg-gray-900 rounded-2xl border-2 border-indigo-500/30 shadow-2xl overflow-hidden pointer-events-none">
                                         <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity pointer-events-auto">

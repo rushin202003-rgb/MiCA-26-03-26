@@ -1,20 +1,8 @@
 import React, { useMemo } from 'react';
 import { NODE_POSITIONS, EDGES, MICA_ORANGE } from './constants';
 
-function seededRandom(seed: string) {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) {
-    h = Math.imul(31, h) + seed.charCodeAt(i) | 0;
-  }
-  return () => {
-    h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
-    h = Math.imul(h ^ (h >>> 13), 0x45d9f3b);
-    h = (h ^ (h >>> 16)) >>> 0;
-    return (h % 10000) / 10000;
-  };
-}
-
-function wobblyPath(fromId: string, toId: string, edgeId: string): { d: string; length: number } {
+// Build a smooth, single-curve path between two nodes, connecting their centres.
+function arcPath(fromId: string, toId: string): { d: string; length: number } {
   const a = NODE_POSITIONS[fromId];
   const b = NODE_POSITIONS[toId];
   if (!a || !b) return { d: '', length: 0 };
@@ -25,26 +13,27 @@ function wobblyPath(fromId: string, toId: string, edgeId: string): { d: string; 
   const nx = dx / dist;
   const ny = dy / dist;
 
-  const x1 = a.x + nx * a.r;
-  const y1 = a.y + ny * a.r;
-  const x2 = b.x - nx * b.r;
-  const y2 = b.y - ny * b.r;
+  // Connect from centre to centre; circles will sit on top so only outer arcs show.
+  const x1 = a.x;
+  const y1 = a.y;
+  const x2 = b.x;
+  const y2 = b.y;
 
-  const rand = seededRandom(edgeId);
+  // Perpendicular unit vector for a gentle arc away from the straight line
   const px = -ny;
   const py = nx;
 
-  const wobble1 = (rand() - 0.5) * 60;
-  const wobble2 = (rand() - 0.5) * 60;
+  // Fixed offset so all noodles are clean and predictable, not hand-drawn
+  const offset = 40;
 
-  const cp1x = x1 + (x2 - x1) * 0.33 + px * wobble1;
-  const cp1y = y1 + (y2 - y1) * 0.33 + py * wobble1;
-  const cp2x = x1 + (x2 - x1) * 0.66 + px * wobble2;
-  const cp2y = y1 + (y2 - y1) * 0.66 + py * wobble2;
+  const cp1x = x1 + (x2 - x1) * 0.33 + px * offset;
+  const cp1y = y1 + (y2 - y1) * 0.33 + py * offset;
+  const cp2x = x1 + (x2 - x1) * 0.66 + px * offset;
+  const cp2y = y1 + (y2 - y1) * 0.66 + py * offset;
 
   const d = `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`;
   const segDist = Math.hypot(x2 - x1, y2 - y1);
-  const length = segDist * 1.15;
+  const length = segDist;
 
   return { d, length };
 }
@@ -58,7 +47,7 @@ const NoodleConnections: React.FC<NoodleConnectionsProps> = ({ drawnEdges, yesNo
   const paths = useMemo(() => {
     return EDGES.map((edge) => ({
       ...edge,
-      ...wobblyPath(edge.from, edge.to, edge.id),
+      ...arcPath(edge.from, edge.to),
     }));
   }, []);
 
@@ -76,7 +65,7 @@ const NoodleConnections: React.FC<NoodleConnectionsProps> = ({ drawnEdges, yesNo
     >
       <defs>
         <filter id="noodleGlow">
-          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feGaussianBlur stdDeviation="4" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
@@ -99,10 +88,10 @@ const NoodleConnections: React.FC<NoodleConnectionsProps> = ({ drawnEdges, yesNo
             d={p.d}
             fill="none"
             stroke={MICA_ORANGE}
-            strokeWidth="2.5"
+            strokeWidth="3.5"
             strokeLinecap="round"
             filter="url(#noodleGlow)"
-            opacity="0.75"
+            opacity="0.9"
             strokeDasharray={dashLen}
             strokeDashoffset={dashLen}
             style={{

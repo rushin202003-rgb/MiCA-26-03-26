@@ -1,13 +1,16 @@
 import type { NodePosition, NodeDef, EdgeDef } from './types';
 
 export const MICA_ORANGE = '#FF7A00';
-export const MICA_ORANGE_DIM = 'rgba(255,122,0,0.15)';
-export const MICA_ORANGE_GLOW = 'rgba(255,122,0,0.55)';
-export const NODE_BG = 'rgba(22,22,42,0.95)';
-export const LABEL_COLOR = 'rgba(255,255,255,0.42)';
+export const MICA_ORANGE_DIM = 'rgba(255,122,0,0.18)';
+export const MICA_ORANGE_GLOW = 'rgba(255,122,0,0.7)';
+// Slightly warmer, more on-brand node background with subtle orange glow
+export const NODE_BG =
+  'radial-gradient(circle at 30% 15%, rgba(255,122,0,0.24), rgba(8,10,26,0.96))';
+export const LABEL_COLOR = 'rgba(255,255,255,0.6)';
 
 export const NODE_POSITIONS: Record<string, NodePosition> = {
-  start:        { x: 300,  y: 420, r: 75  },
+  // Nudge the start node a bit to the right and slightly larger so its shape is fully visible
+  start:        { x: 340,  y: 420, r: 82  },
   productName:  { x: 560,  y: 400, r: 130 },
   whatDoesItDo: { x: 560,  y: 700, r: 135 },
   whoIsItFor:   { x: 840,  y: 250, r: 125 },
