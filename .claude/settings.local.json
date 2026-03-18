@@ -31,7 +31,11 @@
       "mcp__plugin_playwright_playwright__browser_network_requests",
       "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && node -e \"\nconst ffmpegPath = require\\('ffmpeg-static'\\);\nconst { spawnSync } = require\\('child_process'\\);\nconst r = spawnSync\\(ffmpegPath, ['-i', 'public/media/video2.mp4'], { encoding: 'utf8' }\\);\nconst out = r.stderr || r.stdout;\nconst lines = out.split\\('\\\\n'\\).filter\\(l => l.match\\(/Video:|Audio:|Duration/\\)\\);\nconsole.log\\(lines.join\\('\\\\n'\\)\\);\n\")",
       "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && node -e \"\nconst ffmpegPath = require\\('ffmpeg-static'\\);\nconst { spawnSync } = require\\('child_process'\\);\nconst r = spawnSync\\(ffmpegPath, ['-i', 'public/media/video1.mp4'], { encoding: 'utf8' }\\);\nconst out = r.stderr || r.stdout;\nconst lines = out.split\\('\\\\n'\\).filter\\(l => l.match\\(/Video:|Audio:|Duration/\\)\\);\nconsole.log\\(lines.join\\('\\\\n'\\)\\);\n\")",
-      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && node -e \"\nconst ffmpegPath = require\\('ffmpeg-static'\\);\nconst { spawnSync } = require\\('child_process'\\);\nconst r = spawnSync\\(ffmpegPath, [\n  '-i', 'public/media/video1.mp4',\n  '-c:v', 'libx264',\n  '-preset', 'fast',\n  '-crf', '23',\n  '-vf', 'scale=720:-2,format=yuv420p',\n  '-colorspace', 'bt709',\n  '-color_primaries', 'bt709',\n  '-color_trc', 'bt709',\n  '-c:a', 'aac',\n  '-b:a', '128k',\n  '-movflags', '+faststart',\n  'public/media/video1_fix.mp4',\n  '-y'\n], { encoding: 'utf8', stdio: 'inherit' }\\);\nconsole.log\\('exit code:', r.status\\);\n\")"
+      "Bash(cd \"E:\\\\AI Data\\\\Mica-app\" && node -e \"\nconst ffmpegPath = require\\('ffmpeg-static'\\);\nconst { spawnSync } = require\\('child_process'\\);\nconst r = spawnSync\\(ffmpegPath, [\n  '-i', 'public/media/video1.mp4',\n  '-c:v', 'libx264',\n  '-preset', 'fast',\n  '-crf', '23',\n  '-vf', 'scale=720:-2,format=yuv420p',\n  '-colorspace', 'bt709',\n  '-color_primaries', 'bt709',\n  '-color_trc', 'bt709',\n  '-c:a', 'aac',\n  '-b:a', '128k',\n  '-movflags', '+faststart',\n  'public/media/video1_fix.mp4',\n  '-y'\n], { encoding: 'utf8', stdio: 'inherit' }\\);\nconsole.log\\('exit code:', r.status\\);\n\")",
+      "Bash(npm run:*)",
+      "Bash(grep -l \"export\\\\|React.FC\" /d/Work/AIGF/AGProjects/MiCA-Mac/src/pages/*.tsx /d/Work/AIGF/AGProjects/MiCA-Mac/src/pages/**/*.tsx)",
+      "Bash(xargs grep:*)",
+      "Bash(find D:/Work/AIGF/AGProjects/MiCA-Mac -name *.config.* -o -name tailwind.*)"
     ]
   }
 }

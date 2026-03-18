@@ -29,8 +29,11 @@ export interface FormValues {
   budgetAmount: string;
   location: string;
   tone: string;
+  customTone: string;
   attachedDocUrl: string;
   attachedDocName: string;
+  customerDataUrl: string;
+  customerDataName: string;
 }
 
 export interface WobbleBorderRadius {

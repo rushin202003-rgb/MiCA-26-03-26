@@ -4,7 +4,6 @@ import { Plus, Calendar, BarChart2, MoreVertical, Sparkles } from 'lucide-react'
 import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
 import { Layout } from '../components/Layout';
-import MiCALogo from '../components/MiCALogo';
 import { useAuth } from '../context/AuthContext';
 import { DEMO_MODE_ENABLED, DEMO_CAMPAIGN } from '../data/demoData';
 
@@ -80,9 +79,6 @@ export const CampaignList: React.FC = () => {
     return (
         <Layout>
             <div className="container mx-auto px-4 py-8">
-                <div className="flex justify-center mb-8 w-full z-20 relative">
-                    <MiCALogo variant="header" />
-                </div>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-white mb-2">My Campaigns</h1>

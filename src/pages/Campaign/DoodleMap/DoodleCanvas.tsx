@@ -26,6 +26,8 @@ interface DoodleCanvasProps {
   onFinish: () => void;
   onFileUpload: (file: File) => void;
   isUploading: boolean;
+  onCustomerDataUpload: (file: File) => void;
+  isCustomerDataUploading: boolean;
 }
 
 const CAMERA_GUIDE: Record<string, { x: number; y: number; scale: number }> = {
@@ -39,8 +41,9 @@ const CAMERA_GUIDE: Record<string, { x: number; y: number; scale: number }> = {
   howMuch: { x: 10, y: 12, scale: 1.03 },
   location: { x: 8, y: 14, scale: 1.03 },
   tone: { x: 8, y: 10, scale: 1.04 },
-  attachDoc: { x: 8, y: 12, scale: 1.03 },
-  letsGo: { x: 10, y: 12, scale: 1.04 },
+  attachDoc:    { x: 8, y: 12, scale: 1.03 },
+  customerData: { x: 8, y: 12, scale: 1.03 },
+  letsGo:       { x: 10, y: 12, scale: 1.04 },
 };
 
 const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
@@ -59,6 +62,8 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
   onFinish,
   onFileUpload,
   isUploading,
+  onCustomerDataUpload,
+  isCustomerDataUploading,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState({ w: window.innerWidth, h: window.innerHeight });
@@ -66,6 +71,7 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [editExpansion, setEditExpansion] = useState<{ nodeId: string; focused: boolean; width: number; height: number } | null>(null);
   const userDraggedRef = useRef(false);
+  const hasDragMovedRef = useRef(false);
   const prevActiveNodeRef = useRef(activeNode);
   const panXAnimationRef = useRef<{ stop: () => void } | null>(null);
   const panYAnimationRef = useRef<{ stop: () => void } | null>(null);
@@ -118,7 +124,7 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
       userDraggedRef.current = false;
       prevActiveNodeRef.current = activeNode;
     }
-    if (userDraggedRef.current || isDragging) return;
+    if (userDraggedRef.current) return;
 
     const pos = renderPositions[activeNode] || renderPositions.start || NODE_POSITIONS.start;
     const guide = CAMERA_GUIDE[activeNode] || CAMERA_GUIDE.start;
@@ -149,7 +155,7 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
       restSpeed: 0.002,
       restDelta: 0.002,
     });
-  }, [activeNode, viewport, panX, panY, springScale, renderPositions, isDragging]);
+  }, [activeNode, viewport, panX, panY, springScale, renderPositions]);
 
   useEffect(() => {
     if (step === 0) {
@@ -159,11 +165,17 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
 
   const handleDragStart = useCallback(() => {
     if (isInputFocused) return;
+    hasDragMovedRef.current = false;
+    setIsDragging(true);
+  }, [isInputFocused]);
+
+  const handleDrag = useCallback(() => {
+    if (isInputFocused || hasDragMovedRef.current) return;
     panXAnimationRef.current?.stop();
     panYAnimationRef.current?.stop();
     scaleAnimationRef.current?.stop();
     userDraggedRef.current = true;
-    setIsDragging(true);
+    hasDragMovedRef.current = true;
   }, [isInputFocused]);
 
   const handleDragEnd = useCallback(() => {
@@ -232,6 +244,7 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
         dragConstraints={dragConstraints}
         dragTransition={{ power: 0.1, timeConstant: 320 }}
         onDragStart={handleDragStart}
+        onDrag={handleDrag}
         onDragEnd={handleDragEnd}
         style={{
           x: panX,
@@ -266,6 +279,8 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
             onFinish={onFinish}
             onFileUpload={onFileUpload}
             isUploading={isUploading}
+            onCustomerDataUpload={onCustomerDataUpload}
+            isCustomerDataUploading={isCustomerDataUploading}
           />
         ))}
       </motion.div>

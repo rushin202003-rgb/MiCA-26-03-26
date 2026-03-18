@@ -37,18 +37,10 @@ export const DemoModeToggle: React.FC = () => {
 
     return (
         <>
-            {/* Top Banner - Only visible when Demo Mode is ON */}
+            {/* Bottom pill badge - Only visible when Demo Mode is ON */}
             {isDemoMode && (
-                <div className="fixed top-0 left-0 right-0 h-7 bg-amber-500 text-black text-xs font-bold flex items-center justify-center z-[100] shadow-md">
-                    <span className="flex items-center gap-2">
-                        <span>🎮 DEMO MODE — Using sample campaign data. No API calls.</span>
-                        <button
-                            onClick={toggleDemoMode}
-                            className="bg-black/20 hover:bg-black/30 text-black px-2 py-0.5 rounded text-[10px] ml-2 transition-colors"
-                        >
-                            EXIT
-                        </button>
-                    </span>
+                <div className="fixed bottom-14 left-4 bg-amber-500 text-black text-[10px] font-bold flex items-center gap-2 z-[100] rounded-full px-3 py-1 shadow-md">
+                    <span>🎮 DEMO MODE</span>
                 </div>
             )}
 

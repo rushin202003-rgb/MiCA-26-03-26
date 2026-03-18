@@ -58,6 +58,8 @@ interface DoodleNodeProps {
   onFinish: () => void;
   onFileUpload: (file: File) => void;
   isUploading: boolean;
+  onCustomerDataUpload: (file: File) => void;
+  isCustomerDataUploading: boolean;
 }
 
 const DoodleNode: React.FC<DoodleNodeProps> = ({
@@ -78,28 +80,33 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
   onFinish,
   onFileUpload,
   isUploading,
+  onCustomerDataUpload,
+  isCustomerDataUploading,
 }) => {
   const pos = position;
 
   const wobble = useMemo(() => seededWobble(node.id), [node.id]);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const customerFileInputRef = useRef<HTMLInputElement>(null);
 
   const isStart = node.id === 'start';
   const isLetsGo = node.id === 'letsGo';
   const isActionButton = isStart || isLetsGo;
-  const isToneChoiceActive = isActive && node.id === 'tone' && node.inputType === 'choice';
   const currentValue = node.valueKey ? values[node.valueKey as keyof FormValues] : '';
+  const isToneChoiceActive = isActive && node.id === 'tone' && node.inputType === 'choice';
   const yesNoAnswer = yesNoAnswers[node.id] ?? null;
   const isTypingNode = !isActionButton && (node.inputType === 'text' || node.inputType === 'textarea');
   const isExpandableTypingNode = isTypingNode && node.id !== 'howMuch';
   const [isFieldFocused, setIsFieldFocused] = useState(false);
   const [typingBoostActive, setTypingBoostActive] = useState(false);
+  const [locationCityMode, setLocationCityMode] = useState(false);
   const typingBoostTimeoutRef = useRef<number | null>(null);
   const [visibleLineCount, setVisibleLineCount] = useState(1);
   const [lineOverflowed, setLineOverflowed] = useState(false);
   const valueLength = currentValue.trim().length;
   const shouldMorphToRect = isActive && isExpandableTypingNode && isFieldFocused;
+  const isLocationButtonMode = isActive && node.id === 'location' && !locationCityMode;
   const isRectLikeNode = shouldMorphToRect || isToneChoiceActive;
   const lineGrowthPx = node.inputType === 'textarea' ? 28 : 30;
 
@@ -121,13 +128,17 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
       ? pos.r * 3
     : isToneChoiceActive
       ? 540
+    : isLocationButtonMode
+      ? 300
     : (shouldMorphToRect ? expandedWidth : isActive ? activeCircleSize : collapsedSize);
   const nodeHeight = isStart
     ? pos.r * 2
     : isLetsGo
       ? pos.r * 3
     : isToneChoiceActive
-      ? 470
+      ? (currentValue === 'Custom' ? 640 : 520)
+    : isLocationButtonMode
+      ? 300
     : (shouldMorphToRect ? expandedHeight : isActive ? activeCircleSize : collapsedSize);
   const nodeBorderRadius = isStart
     ? wobble.borderRadius
@@ -146,6 +157,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
   useEffect(() => {
     if (!isActive) {
       onInputFocusStateChange(false);
+      setLocationCityMode(false);
     }
   }, [isActive, onInputFocusStateChange]);
 
@@ -235,14 +247,19 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
     if (file) onFileUpload(file);
   };
 
+  const handleCustomerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) onCustomerDataUpload(file);
+  };
+
   useEffect(() => {
-    if (!isExpandableTypingNode || !isActive) {
+    if (!isExpandableTypingNode || !isActive || !isFieldFocused) {
       onEditFocusChange(null);
       return;
     }
     onEditFocusChange({
       nodeId: node.id,
-      focused: isFieldFocused,
+      focused: true,
       width: nodeWidth,
       height: nodeHeight,
     });
@@ -407,12 +424,14 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                   <div className="doodle-scrollable" style={{ fontSize: 13, fontWeight: 700, color: '#fff', textAlign: 'center', maxWidth: '92%', lineHeight: 1.2, maxHeight: 56, overflowY: 'auto', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                     {node.id === 'attachDoc'
                       ? (yesNoAnswer ? values.attachedDocName || 'Attached' : 'Skipped')
-                      : (yesNoAnswer ? 'Yes' : 'No')
+                      : node.id === 'customerData'
+                        ? (yesNoAnswer ? values.customerDataName || 'Attached' : 'Skipped')
+                        : (yesNoAnswer ? 'Yes' : 'No')
                     }
                   </div>
                 )}
 
-                {isActive && node.inputType === 'text' && node.id !== 'howMuch' && (
+                {isActive && node.inputType === 'text' && node.id !== 'howMuch' && node.id !== 'location' && (
                   <div
                     style={{ width: '90%', textAlign: 'center' }}
                     onPointerDown={blockCanvasDragFromInput}
@@ -456,6 +475,102 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                         style={{ fontSize: 18, color: '#fff', background: 'transparent', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 9999, padding: '12px 32px', cursor: 'pointer', fontWeight: 700, marginTop: 12 }}
                       >
                         press Enter ↓
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {isActive && node.id === 'location' && !locationCityMode && (
+                  <div style={{ display: 'flex', gap: 18, marginTop: 14 }}>
+                    <button
+                      type="button"
+                      onClick={() => { onValueChange('location', ''); setLocationCityMode(true); }}
+                      style={{
+                        padding: '14px 38px',
+                        borderRadius: 9999,
+                        border: '2px solid rgba(255,255,255,0.4)',
+                        background: 'transparent',
+                        color: '#fff',
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 20,
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                      }}
+                    >
+                      City
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { onValueChange('location', 'Online'); onAdvance(); }}
+                      style={{
+                        padding: '14px 38px',
+                        borderRadius: 9999,
+                        border: '2px solid rgba(255,255,255,0.4)',
+                        background: 'transparent',
+                        color: '#fff',
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 20,
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                      }}
+                    >
+                      Online
+                    </button>
+                  </div>
+                )}
+
+                {isActive && node.id === 'location' && locationCityMode && (
+                  <div
+                    style={{ width: '90%', textAlign: 'center' }}
+                    onPointerDown={blockCanvasDragFromInput}
+                    onMouseDown={blockCanvasDragFromInput}
+                    onTouchStart={blockCanvasDragFromInput}
+                  >
+                    <textarea
+                      ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+                      value={currentValue}
+                      onChange={(e) => node.valueKey && onValueChange(node.valueKey, e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      onFocus={handleFieldFocus}
+                      onBlur={handleFieldBlur}
+                      placeholder="Any city / village / area"
+                      rows={1}
+                      className="doodle-node-textarea doodle-scrollable"
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        borderBottom: '1.5px solid rgba(255,255,255,0.38)',
+                        color: 'rgba(255, 244, 233, 0.98)',
+                        fontFamily: "'Inter', sans-serif",
+                        textAlign: 'center',
+                        outline: 'none',
+                        width: '100%',
+                        padding: '8px 6px 6px',
+                        fontSize: 22,
+                        fontWeight: 700,
+                        lineHeight: 1.35,
+                        resize: 'none',
+                        overflowY: lineOverflowed ? 'auto' : 'hidden',
+                        maxHeight: 168,
+                        whiteSpace: 'pre-wrap',
+                        overflowWrap: 'anywhere',
+                        wordBreak: 'break-word',
+                      }}
+                    />
+                    {currentValue.trim() && (
+                      <div
+                        onClick={onAdvance}
+                        style={{ fontSize: 18, color: '#fff', background: 'transparent', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 9999, padding: '12px 32px', cursor: 'pointer', fontWeight: 700, marginTop: 12 }}
+                      >
+                        press Enter ↓
+                      </div>
+                    )}
+                    {!currentValue.trim() && (
+                      <div
+                        onClick={() => { setLocationCityMode(false); }}
+                        style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', marginTop: 10, cursor: 'pointer', textDecoration: 'underline', textAlign: 'center' }}
+                      >
+                        ← Online instead?
                       </div>
                     )}
                   </div>
@@ -597,7 +712,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                   </div>
                 )}
 
-                {isActive && node.inputType === 'yesno' && node.id !== 'attachDoc' && (
+                {isActive && node.inputType === 'yesno' && node.id !== 'attachDoc' && node.id !== 'customerData' && (
                   <div style={{ display: 'flex', gap: 18, marginTop: 14 }}>
                     <button
                       type="button"
@@ -690,12 +805,13 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                 )}
 
                 {isToneChoiceActive && node.choices && (
-                  <div style={{ position: 'relative', width: 540, height: 470, pointerEvents: 'none' }}>
+                  <div style={{ position: 'relative', width: 540, height: currentValue === 'Custom' ? 640 : 520, pointerEvents: 'none' }}>
                     <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible', pointerEvents: 'none', zIndex: 1 }}>
                       <path d="M 270 182 Q 176 186 90 244" stroke="rgba(255,255,255,0.48)" strokeWidth="2.2" fill="none" />
                       <path d="M 270 182 Q 368 186 448 244" stroke="rgba(255,255,255,0.48)" strokeWidth="2.2" fill="none" />
                       <path d="M 270 182 Q 198 252 176 350" stroke="rgba(255,255,255,0.48)" strokeWidth="2.2" fill="none" />
                       <path d="M 270 182 Q 344 252 366 350" stroke="rgba(255,255,255,0.48)" strokeWidth="2.2" fill="none" />
+                      <path d="M 270 182 Q 270 320 270 440" stroke="rgba(255,255,255,0.48)" strokeWidth="2.2" fill="none" />
                     </svg>
 
                     <div
@@ -733,6 +849,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                         'Warm & Inspirational': { top: 214, left: 300, shape: 'rounded', w: 224, h: 96, drift: 6, duration: 4.1 },
                         'Urgent!': { top: 336, left: 98, shape: 'diamond', w: 152, h: 100, drift: 5, duration: 3.8 },
                         'Professional': { top: 336, left: 292, shape: 'ellipse', w: 216, h: 96, drift: 6, duration: 4.2 },
+                        'Custom': { top: 390, left: 192, shape: 'circle', w: 156, h: 92, drift: 4, duration: 4.0 },
                       };
                       const item = itemByChoice[choice] ?? itemByChoice['Casual :)'];
                       const selected = currentValue === choice;
@@ -768,8 +885,97 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                         </motion.button>
                       );
                     })}
+
+                    {currentValue === 'Custom' && (
+                      <div
+                        style={{ position: 'absolute', top: 498, left: 40, right: 40, pointerEvents: 'auto', zIndex: 10 }}
+                        onPointerDown={blockCanvasDragFromInput}
+                        onMouseDown={blockCanvasDragFromInput}
+                        onTouchStart={blockCanvasDragFromInput}
+                      >
+                        <input
+                          autoFocus
+                          placeholder="e.g. spiritual, gentle, uplifting"
+                          value={values.customTone}
+                          onChange={e => onValueChange('customTone', e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter' && values.customTone.trim()) onAdvance(); }}
+                          style={{
+                            width: '100%', background: 'rgba(0,0,0,0.35)', border: '2px solid rgba(255,255,255,0.7)',
+                            borderRadius: 12, color: '#fff', fontFamily: "'Inter', sans-serif",
+                            fontSize: 17, fontWeight: 600, padding: '9px 14px', outline: 'none',
+                            textAlign: 'center', pointerEvents: 'auto', boxSizing: 'border-box',
+                          }}
+                        />
+                        {values.customTone.trim() && (
+                          <div
+                            onClick={onAdvance}
+                            style={{ marginTop: 8, fontSize: 16, color: '#fff', background: 'transparent',
+                              border: '2px solid rgba(255,255,255,0.4)', borderRadius: 9999,
+                              padding: '8px 24px', cursor: 'pointer', fontWeight: 700, textAlign: 'center', pointerEvents: 'auto' }}
+                          >
+                            next →
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                   </div>
                 )}
+
+                {isActive && node.id === 'customerData' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                    <input
+                      ref={customerFileInputRef}
+                      type="file"
+                      accept=".csv"
+                      onChange={handleCustomerFileChange}
+                      style={{ display: 'none' }}
+                    />
+                    {isCustomerDataUploading ? (
+                      <div style={{ fontSize: 12, color: MICA_ORANGE, fontWeight: 600 }}>
+                        Uploading…
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', gap: 18 }}>
+                        <button
+                          type="button"
+                          onClick={() => customerFileInputRef.current?.click()}
+                          style={{
+                            padding: '14px 38px',
+                            borderRadius: 9999,
+                            border: `2px solid ${yesNoAnswer === true ? MICA_ORANGE : 'rgba(255,255,255,0.4)'}`,
+                            background: yesNoAnswer === true ? MICA_ORANGE : 'transparent',
+                            color: '#fff',
+                            fontFamily: "'Inter', sans-serif",
+                            fontSize: 20,
+                            cursor: 'pointer',
+                            fontWeight: 700,
+                          }}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onYesNo(node.id, false)}
+                          style={{
+                            padding: '14px 38px',
+                            borderRadius: 9999,
+                            border: `2px solid ${yesNoAnswer === false ? MICA_ORANGE : 'rgba(255,255,255,0.4)'}`,
+                            background: yesNoAnswer === false ? MICA_ORANGE : 'transparent',
+                            color: '#fff',
+                            fontFamily: "'Inter', sans-serif",
+                            fontSize: 20,
+                            cursor: 'pointer',
+                            fontWeight: 700,
+                          }}
+                        >
+                          Skip
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
               </>
             )}
             </div>

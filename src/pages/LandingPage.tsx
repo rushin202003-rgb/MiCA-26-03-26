@@ -246,7 +246,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
         <>
         <Layout>
             {/* Hero Section */}
-            <section className="relative min-h-screen flex flex-col justify-start pt-16 pb-20 overflow-hidden">
+            <section className="relative min-h-screen flex flex-col justify-start pt-4 pb-12 overflow-hidden">
                 {/* Subtle grid overlay */}
                 <div className="grid-overlay z-0"></div>
 
@@ -256,12 +256,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
                         {/* Left Column - Content */}
                         <div className="text-left animate-in slide-in-from-bottom-5 duration-1000">
                             {/* MiCA Animated Acronym Logo — fixed height so expansion doesn't shift videos */}
-                            <div className="h-[110px] md:h-[140px] lg:h-[180px] mb-4 md:mb-6 pb-2 flex flex-col justify-start">
+                            <div className="h-[80px] md:h-[100px] lg:h-[130px] mb-2 md:mb-3 pb-1 flex flex-col justify-start">
                                 <MiCALogo />
                             </div>
 
                             {/* Fixed height so typewriter length changes don't shift buttons/videos */}
-                            <div className="h-[140px] md:h-[180px] lg:h-[220px] xl:h-[240px] mb-8 flex flex-col justify-start">
+                            <div className="h-[190px] md:h-[240px] lg:h-[320px] xl:h-[370px] mb-4 flex flex-col justify-start overflow-hidden">
                                 <h1 className="text-5xl md:text-6xl xl:text-7xl font-bold text-white tracking-tight leading-tight">
                                     Marketing that <br />
                                     <span className="text-[#FF7A00] italic font-serif opacity-90">{typewriterText}</span>
@@ -269,8 +269,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
                                 </h1>
                             </div>
 
-                            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-[650px] leading-relaxed">
-                                MiCA is your professional Marketing Agent that delivers not just a comprehensive marketing plan built on proven frameworks, it also executes every campaign automatically across all channels until your launch day!
+                            <p className="text-xl md:text-2xl text-gray-300 mb-7 max-w-[650px] leading-relaxed">
+                                Describe your business once. MiCA, your AI Marketing agent, builds &amp; launches a complete marketing campaign across email, WhatsApp and Instagram!
                             </p>
 
                             <div className="flex flex-col sm:flex-row gap-5 relative z-20" data-interest="buttons">
@@ -279,7 +279,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
                                         Create your campaign
                                     </Button>
                                 </Link>
-                                <Button size="lg" variant="outline" onClick={() => openWaitlist('hero')} className="border-white/50 text-white font-normal hover:bg-white/10 hover:text-white px-10 py-6 text-base rounded-full backdrop-blur-sm">
+                                <Button size="lg" variant="outline" onClick={() => openWaitlist('hero')} className="border-white/50 text-white font-normal hover:bg-white/10 hover:text-white hover:border-green-500/70 hover:shadow-[0_0_24px_rgba(37,211,102,0.45)] hover:-translate-y-1 px-10 py-6 text-base rounded-full backdrop-blur-sm transition-all duration-300">
                                     Join the waitlist
                                 </Button>
                             </div>
@@ -336,8 +336,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
 
 
                                 <h2 className="relative text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-white uppercase italic text-center leading-tight">
-                                    Your Info in.<br />
-                                    <span className="text-[#FF7A00]">Your Campaign out!</span>
+                                    Your <span className="text-[#FF7A00]">complete marketing campaign</span>. <span className="text-white">In 5 minutes!</span>
                                 </h2>
                             </div>
 
@@ -347,7 +346,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
             </section>
 
             {/* PROCESS SECTION: How it Works */}
-            <section className="py-24 relative overflow-hidden">
+            <section className="pt-10 pb-24 relative overflow-hidden">
                 <div className="container mx-auto px-4 md:px-8 max-w-[1400px]">
                     <div className="text-center max-w-3xl mx-auto mb-20">
                         <p className="text-[#FF7A00] font-semibold tracking-wider uppercase text-sm mb-4">HOW IT WORKS</p>

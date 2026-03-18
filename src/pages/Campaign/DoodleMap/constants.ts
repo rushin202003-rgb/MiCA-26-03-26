@@ -20,21 +20,23 @@ export const NODE_POSITIONS: Record<string, NodePosition> = {
   location:     { x: 1620, y: 280,  r: 114 },
   tone:         { x: 1730, y: 830,  r: 145 },
   attachDoc:    { x: 2050, y: 830,  r: 110 },
+  customerData: { x: 2270, y: 1050, r: 110 },
   letsGo:       { x: 1880, y: 1120, r: 88  },
 };
 
 export const NODES: NodeDef[] = [
   { id: 'start',        label: 'Start',                   inputType: 'button' },
-  { id: 'productName',  label: 'Product Name',             inputType: 'text',     placeholder: 'The Art of Living Happiness Programme - May 2026',           valueKey: 'name' },
-  { id: 'whatDoesItDo', label: "What's this for?",        inputType: 'textarea', placeholder: 'Meditation Classes',  valueKey: 'desc' },
-  { id: 'whoIsItFor',   label: 'Who is it for?',          inputType: 'text',     placeholder: 'IT folks, age 25-55',  valueKey: 'audience' },
+  { id: 'productName',  label: 'Product Name',             inputType: 'text',     placeholder: 'Name of your product or event.',           valueKey: 'name' },
+  { id: 'whatDoesItDo', label: "What does it do?",         inputType: 'textarea', placeholder: 'Product details- add details of your product here',     valueKey: 'desc' },
+  { id: 'whoIsItFor',   label: 'Who is it for?',          inputType: 'text',     placeholder: 'Your target audience',      valueKey: 'audience' },
   { id: 'hasDate',      label: 'Does it have a date?',    inputType: 'yesno' },
   { id: 'datePicker',   label: 'Select Date',             inputType: 'date',     valueKey: 'date' },
   { id: 'hasBudget',    label: 'Have a budget in mind?',  inputType: 'yesno' },
   { id: 'howMuch',      label: 'How much?',               inputType: 'text',     placeholder: 'e.g. 50000',                   valueKey: 'budgetAmount' },
   { id: 'location',     label: 'Location',                inputType: 'text',     placeholder: 'Any city / village / area',    valueKey: 'location' },
-  { id: 'tone',         label: 'Which tone do you prefer?', inputType: 'choice', choices: ['Casual :)', 'Warm & Inspirational', 'Urgent!', 'Professional'], valueKey: 'tone' },
-  { id: 'attachDoc',    label: 'Want to attach a doc?',   inputType: 'yesno' },
+  { id: 'tone',         label: 'Which tone do you prefer?', inputType: 'choice', choices: ['Casual :)', 'Warm & Inspirational', 'Urgent!', 'Professional', 'Custom'], valueKey: 'tone' },
+  { id: 'attachDoc',    label: 'Want to attach a product doc?', inputType: 'yesno' },
+  { id: 'customerData', label: 'Do you have customer data?',    inputType: 'yesno' },
   { id: 'letsGo',       label: "Generate tone preview",    inputType: 'button' },
 ];
 
@@ -51,10 +53,11 @@ export const EDGES: EdgeDef[] = [
   { id: 'e10', from: 'hasBudget',   to: 'location',    condNode: 'hasBudget', condValue: false },
   { id: 'e11', from: 'location',    to: 'tone' },
   { id: 'e12', from: 'tone',        to: 'attachDoc' },
-  { id: 'e13', from: 'attachDoc',   to: 'letsGo' },
+  { id: 'e13', from: 'attachDoc',    to: 'customerData' },
+  { id: 'e14', from: 'customerData', to: 'letsGo' },
 ];
 
-export const STEP_TOTAL = 11;
+export const STEP_TOTAL = 12;
 
 export const SPRING_PAN = { stiffness: 44, damping: 26 };
 export const SPRING_SCALE = { stiffness: 65, damping: 18 };

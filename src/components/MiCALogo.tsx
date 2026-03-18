@@ -25,7 +25,7 @@ const LETTERS: LetterDef[] = [
   { char: 'A', fullWord: 'utomation' },
 ];
 
-export default function MiCALogo({ variant = 'hero' }: { variant?: 'hero' | 'header' }) {
+export default function MiCALogo({ variant = 'hero', static: isStatic = false }: { variant?: 'hero' | 'header'; static?: boolean }) {
   // Which letter index (0-3) is randomly expanding, or -1 for none
   const [expandedIdx, setExpandedIdx] = useState(-1);
   // Which letter index is currently being hovered
@@ -34,10 +34,12 @@ export default function MiCALogo({ variant = 'hero' }: { variant?: 'hero' | 'hea
   const { mode } = useAnimationContext();
 
   // The index to actually display (hover takes precedence)
-  // Force collapse (-1) during generating, launching, or error modes
-  const displayIdx = (mode !== 'idle') ? -1 : (hoveredIdx !== -1 ? hoveredIdx : expandedIdx);
+  // Force collapse (-1) during generating, launching, error modes, or when static
+  const displayIdx = isStatic ? -1 : ((mode !== 'idle') ? -1 : (hoveredIdx !== -1 ? hoveredIdx : expandedIdx));
 
   useEffect(() => {
+    // Static logos never auto-expand
+    if (isStatic) return;
     // Stop auto-expansion if we are animating a state
     if (mode !== 'idle') {
       setExpandedIdx(-1);
@@ -66,10 +68,10 @@ export default function MiCALogo({ variant = 'hero' }: { variant?: 'hero' | 'hea
   }, [mode]);
 
   const isHeader = variant === 'header';
-  const mainFont = isHeader ? 'clamp(40px, 5vw, 60px)' : 'clamp(90px, 11vw, 140px)';
-  const lowerFont = isHeader ? 'clamp(30px, 4vw, 48px)' : 'clamp(70px, 8vw, 110px)';
-  const expandFont = isHeader ? 'clamp(14px, 1.5vw, 20px)' : 'clamp(28px, 3vw, 42px)';
-  const eyeSize = isHeader ? 40 : 90;
+  const mainFont = isHeader ? 'clamp(20px, 2.5vw, 30px)' : 'clamp(90px, 11vw, 140px)';
+  const lowerFont = isHeader ? 'clamp(15px, 2vw, 24px)' : 'clamp(70px, 8vw, 110px)';
+  const expandFont = isHeader ? 'clamp(7px, 0.75vw, 10px)' : 'clamp(28px, 3vw, 42px)';
+  const eyeSize = isHeader ? 20 : 90;
 
   // Animation variants based on mode
   const getVariants = () => {
@@ -121,13 +123,13 @@ export default function MiCALogo({ variant = 'hero' }: { variant?: 'hero' | 'hea
   const variants = getVariants();
 
   return (
-    <div className={`flex items-baseline gap-0 select-none ${isHeader ? 'mb-4' : ''}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className={`flex items-baseline gap-0 select-none`} style={{ fontFamily: "'Inter', sans-serif" }}>
       {LETTERS.map((letter, i) => (
         <span
           key={i}
           className="inline-flex items-baseline relative cursor-default transition-transform duration-300 hover:scale-110"
-          onMouseEnter={() => setHoveredIdx(i)}
-          onMouseLeave={() => setHoveredIdx(-1)}
+          onMouseEnter={() => !isStatic && setHoveredIdx(i)}
+          onMouseLeave={() => !isStatic && setHoveredIdx(-1)}
         >
           {/* The bold letter */}
           <motion.span

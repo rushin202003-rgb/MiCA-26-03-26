@@ -86,6 +86,7 @@ export const TonePreview: React.FC = () => {
     const [newTone, setNewTone] = useState('');
     const [customFeedback, setCustomFeedback] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [isApproveHovered, setIsApproveHovered] = useState(false);
 
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
@@ -269,8 +270,7 @@ Generate the tone preview samples now.`;
 
     const getBudgetUpgradeText = (channel: string) => {
         if (channel === 'instagram') return 'Budget < ₹5000';
-        if (channel === 'voice_agent') return 'Budget < ₹15000';
-        if (channel === 'video_ad') return 'Budget < ₹25000';
+        if (channel === 'video_ad') return 'Coming soon';
         return 'Not recommended';
     };
 
@@ -319,8 +319,8 @@ Generate the tone preview samples now.`;
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-                            Tone Preview <span className="text-gray-500 text-lg font-normal">for {campaign.product_name}</span>
+                        <h1 className="text-3xl font-bold mb-2 flex items-center gap-2 flex-wrap">
+                            <span className="text-[#FF7A00]">Tone Preview</span> <span className="text-white text-lg font-normal">for {campaign.product_name}</span>
                         </h1>
                         <p className="text-gray-400">Review the AI's approach before we invest in full generation.</p>
                     </div>
@@ -341,7 +341,7 @@ Generate the tone preview samples now.`;
                 )}
 
                 {/* Tone Strategy Card */}
-                <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-xl p-6 mb-8 shadow-xl relative overflow-hidden">
+                <div className="bg-gray-900/40 backdrop-blur-sm border border-white/5 rounded-2xl p-6 mb-8 shadow-[0_4px_24px_rgba(0,0,0,0.4)] hover:-translate-y-1.5 hover:shadow-[0_15px_40px_rgba(99,102,241,0.25)] hover:border-indigo-400/60 hover:bg-gray-800/50 transition-all duration-500 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-3 opacity-10">
                         <Sparkles className="w-32 h-32 text-white" />
                     </div>
@@ -353,13 +353,12 @@ Generate the tone preview samples now.`;
                         <p className="text-gray-300 mb-6 max-w-4xl text-lg leading-relaxed">{previewData.tone_summary}</p>
 
                         <div className="flex flex-wrap gap-3">
-                            {['email', 'whatsapp', 'instagram', 'voice_agent', 'video_ad'].map(channel => {
+                            {['email', 'whatsapp', 'instagram', 'video_ad'].map(channel => {
                                 const supported = isChannelSupported(channel);
                                 const labels: Record<string, string> = {
                                     email: 'Email Marketing',
                                     whatsapp: 'WhatsApp',
                                     instagram: 'Instagram',
-                                    voice_agent: 'Voice Agent',
                                     video_ad: 'Video Ads'
                                 };
                                 return (
@@ -386,21 +385,21 @@ Generate the tone preview samples now.`;
                 <div className="grid md:grid-cols-3 gap-6 mb-10">
 
                     {/* Email Sample */}
-                    <div className="bg-white text-gray-900 rounded-xl overflow-hidden shadow-lg border border-gray-200">
-                        <div className="bg-gray-50 p-4 border-b border-gray-200 flex justify-between items-center">
-                            <div className="flex items-center gap-2 text-gray-600 font-medium">
+                    <div className="bg-white/5 backdrop-blur-md text-white rounded-xl overflow-hidden border border-white/10 hover:bg-white/10 hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:-translate-y-1.5 transition-all duration-300">
+                        <div className="bg-white/5 px-4 py-4 border-b border-white/10 flex justify-between items-center">
+                            <div className="flex items-center gap-2 text-amber-300 font-medium">
                                 <Mail className="w-4 h-4" /> Email Preview
                             </div>
-                            <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">AI GENERATED</span>
+                            <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">AI GENERATED</span>
                         </div>
                         <div className="p-5">
-                            <div className="mb-4 pb-4 border-b border-gray-100">
-                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Subject</p>
-                                <p className="text-sm font-bold text-gray-900 leading-snug">{previewData.sample_email.subject}</p>
+                            <div className="mb-4 pb-4 border-b border-white/10">
+                                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">Subject</p>
+                                <p className="text-sm font-bold text-white leading-snug">{previewData.sample_email.subject}</p>
                             </div>
                             <div className="space-y-2">
-                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Message Preview</p>
-                                <p className="text-sm text-gray-700 leading-relaxed font-serif">
+                                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Message Preview</p>
+                                <p className="text-sm text-gray-300 leading-relaxed">
                                     {previewData.sample_email.opening_paragraph}...
                                 </p>
                             </div>
@@ -408,19 +407,19 @@ Generate the tone preview samples now.`;
                     </div>
 
                     {/* Social Sample */}
-                    <div className="bg-black text-white rounded-xl overflow-hidden shadow-lg border border-gray-800">
-                        <div className="bg-gray-900 p-4 border-b border-gray-800 flex justify-between items-center">
-                            <div className="flex items-center gap-2 text-gray-300 font-medium">
+                    <div className="bg-white/5 backdrop-blur-md text-white rounded-xl overflow-hidden border border-white/10 hover:bg-white/10 hover:border-pink-500/50 hover:shadow-[0_0_20px_rgba(236,72,153,0.2)] hover:-translate-y-1.5 transition-all duration-300">
+                        <div className="bg-white/5 px-4 py-4 border-b border-white/10 flex justify-between items-center">
+                            <div className="flex items-center gap-2 text-pink-300 font-medium">
                                 <Instagram className="w-4 h-4" /> Instagram
                             </div>
                             <span className="text-[10px] bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded-full font-bold">AI GENERATED</span>
                         </div>
                         <div className="p-5">
-                            <div className="aspect-square bg-gray-800 rounded-lg mb-4 flex items-center justify-center text-gray-500 text-xs text-center p-4 border border-gray-700 border-dashed">
+                            <div className="aspect-square bg-gradient-to-br from-pink-900/30 to-purple-900/30 rounded-lg mb-4 flex items-center justify-center text-gray-400 text-xs text-center p-4 border border-pink-500/20 border-dashed">
                                 <span className="opacity-70">Image / Video Placeholder<br />(Visuals generated in Session 3)</span>
                             </div>
                             <div className="mb-2">
-                                <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider mr-2">{previewData.sample_social_post.post_type.replace('_', ' ')}</span>
+                                <span className="text-[10px] uppercase font-bold text-pink-400/70 tracking-wider mr-2">{previewData.sample_social_post.post_type.replace('_', ' ')}</span>
                             </div>
                             <p className="text-sm text-gray-300 leading-normal">
                                 {previewData.sample_social_post.caption}
@@ -429,14 +428,20 @@ Generate the tone preview samples now.`;
                     </div>
 
                     {/* WhatsApp Sample */}
-                    <div className="bg-[#E5DDD5] rounded-xl overflow-hidden shadow-lg border border-gray-300 relative">
+                    <div className="bg-[#E5DDD5] rounded-xl overflow-hidden shadow-lg border border-green-500/50 relative hover:-translate-y-1.5 hover:shadow-[0_15px_40px_rgba(37,211,102,0.2)] transition-all duration-300">
                         <div className="bg-[#075E54] p-4 flex justify-between items-center text-white shadow-sm z-10 relative">
                             <div className="flex items-center gap-2 font-medium">
                                 <MessageSquare className="w-4 h-4" /> WhatsApp
                             </div>
                             <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-bold">AI GENERATED</span>
                         </div>
-                        <div className="p-5 h-[300px] overflow-y-auto bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat opacity-90">
+                        <div className="p-5" style={{
+                          backgroundColor: '#efeae2',
+                          backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")',
+                          backgroundRepeat: 'repeat',
+                          backgroundSize: '260px',
+                          minHeight: 200,
+                        }}>
                             <div className="flex justify-end mb-4">
                                 <div className="bg-[#DCF8C6] text-gray-900 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] text-sm leading-snug relative">
                                     {previewData.sample_whatsapp.message}
@@ -449,7 +454,7 @@ Generate the tone preview samples now.`;
                 </div>
 
                 {/* Footer / Controls */}
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 sticky bottom-4 shadow-2xl z-50">
+                <div className="bg-gray-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 sticky bottom-4 shadow-2xl z-50">
                     <div className="flex-1 w-full">
                         {!campaign.tone_revision_used ? (
                             !isEditing ? (
@@ -506,7 +511,15 @@ Generate the tone preview samples now.`;
                     <Button
                         size="lg"
                         onClick={handleApprove}
-                        className="w-full md:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg shadow-green-900/40 text-white font-bold py-4 px-8"
+                        onMouseEnter={() => setIsApproveHovered(true)}
+                        onMouseLeave={() => setIsApproveHovered(false)}
+                        className="w-full md:w-auto text-white font-extrabold py-4 px-8 rounded-full border-none transition-all transform hover:scale-105"
+                        style={{
+                            backgroundColor: '#FF7A00',
+                            boxShadow: isApproveHovered
+                                ? '0 0 28px 8px rgba(255,122,0,0.9)'
+                                : '0 0 18px 4px rgba(255,122,0,0.4)',
+                        }}
                         rightIcon={<ArrowRight className="w-5 h-5" />}
                     >
                         Looks Great — Generate Full Campaign

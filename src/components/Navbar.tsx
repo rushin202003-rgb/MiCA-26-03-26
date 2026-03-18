@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Sparkles, Menu, X, LogOut, User } from 'lucide-react';
+import { Menu, X, LogOut, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
+import MiCALogo from './MiCALogo';
 
 export const Navbar: React.FC = () => {
     const { user, signOut } = useAuth();
@@ -17,11 +18,10 @@ export const Navbar: React.FC = () => {
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-900/80 backdrop-blur-md border-b border-gray-800">
             <div className="container mx-auto px-4">
-                <div className="flex items-center justify-between h-16">
+                <div className="flex items-center justify-between h-10">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center space-x-2 text-xl font-bold text-white">
-                        <Sparkles className="w-6 h-6 text-indigo-500" />
-                        <span>MiCA</span>
+                    <Link to="/" className="flex items-center">
+                        <MiCALogo variant="header" static />
                     </Link>
 
                     {/* Desktop Navigation */}

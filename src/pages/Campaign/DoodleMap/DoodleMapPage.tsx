@@ -5,7 +5,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useAnimationContext } from '../../../context/AnimationContext';
 import { useEyeballMood } from '../../../contexts/EyeballMoodContext';
 import { supabase } from '../../../lib/supabase';
-import MiCALogo from '../../../components/MiCALogo';
+import { Navbar } from '../../../components/Navbar';
 import DoodleCanvas from './DoodleCanvas';
 import { MICA_ORANGE, STEP_TOTAL } from './constants';
 import type { FormValues } from './types';
@@ -27,12 +27,13 @@ const DoodleMapPage: React.FC = () => {
   const [yesNoAnswers, setYesNoAnswers] = useState<Record<string, boolean | null>>({});
   const [values, setValues] = useState<FormValues>({
     name: '', desc: '', audience: '', date: '', budgetAmount: '', location: '', tone: '',
-    attachedDocUrl: '', attachedDocName: '',
+    customTone: '', attachedDocUrl: '', attachedDocName: '', customerDataUrl: '', customerDataName: '',
   });
   const [finished, setFinished] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [launchError, setLaunchError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCustomerDataUploading, setIsCustomerDataUploading] = useState(false);
 
   const showNode = useCallback((nodeId: string, edgeId?: string) => {
     setVisibleNodes((prev) => new Set([...prev, nodeId]));
@@ -104,6 +105,11 @@ const DoodleMapPage: React.FC = () => {
         showNode('tone', 'e11');
         setStep(9);
         break;
+      case 'tone':
+        // Called when user presses Next after typing custom tone words
+        showNode('attachDoc', 'e12');
+        setStep(10);
+        break;
       default:
         break;
     }
@@ -136,8 +142,12 @@ const DoodleMapPage: React.FC = () => {
         }
         break;
       case 'attachDoc':
-        showNode('letsGo', 'e13');
+        showNode('customerData', 'e13');
         setStep(11);
+        break;
+      case 'customerData':
+        showNode('letsGo', 'e14');
+        setStep(12);
         break;
       default:
         break;
@@ -153,8 +163,11 @@ const DoodleMapPage: React.FC = () => {
 
     switch (nodeId) {
       case 'tone':
-        showNode('attachDoc', 'e12');
-        setStep(10);
+        if (value !== 'Custom') {
+          showNode('attachDoc', 'e12');
+          setStep(10);
+        }
+        // Custom: just store the value, stay on this node
         break;
       default:
         break;
@@ -180,7 +193,7 @@ const DoodleMapPage: React.FC = () => {
       attachedDocName: file.name,
     }));
     setYesNoAnswers((prev) => ({ ...prev, attachDoc: true }));
-    showNode('letsGo', 'e13');
+    showNode('customerData', 'e13');
     setStep(11);
 
     if (!user?.id || DEMO_MODE_ENABLED()) {
@@ -206,6 +219,26 @@ const DoodleMapPage: React.FC = () => {
       console.error('File upload error:', err);
     } finally {
       setIsUploading(false);
+    }
+  }, [user, showNode]);
+
+  const handleCustomerDataUpload = useCallback(async (file: File) => {
+    setValues(prev => ({ ...prev, customerDataName: file.name }));
+    setYesNoAnswers(prev => ({ ...prev, customerData: true }));
+    showNode('letsGo', 'e14');
+    setStep(12);
+
+    if (!user?.id || DEMO_MODE_ENABLED()) return;
+
+    setIsCustomerDataUploading(true);
+    try {
+      const path = `${user.id}/${Date.now()}.csv`;
+      const { error } = await supabase.storage
+        .from('customer-documents')
+        .upload(path, file);
+      if (!error) setValues(prev => ({ ...prev, customerDataUrl: path }));
+    } finally {
+      setIsCustomerDataUploading(false);
     }
   }, [user, showNode]);
 
@@ -250,7 +283,8 @@ const DoodleMapPage: React.FC = () => {
       location: values.location || null,
       product_links: '',
       tone: values.tone || 'Professional',
-      tone_custom_words: null,
+      tone_custom_words: values.tone === 'Custom' ? (values.customTone || null) : null,
+      customer_data_url: values.customerDataUrl || null,
       creator_name: user?.user_metadata?.full_name || 'Business Owner',
       status: 'tone_preview',
     };
@@ -305,9 +339,13 @@ const DoodleMapPage: React.FC = () => {
         `,
       }} />
 
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200 }}>
+        <Navbar />
+      </div>
+
       <div style={{
         position: 'fixed',
-        top: 32,
+        top: 52,
         left: 32,
         zIndex: 100,
         pointerEvents: 'auto',
@@ -319,28 +357,8 @@ const DoodleMapPage: React.FC = () => {
           fontWeight: 400,
           color: '#FFFFFF',
         }}>
-          crafting{' '}
+          Create new marketing campaign
         </span>
-        <span style={{
-          fontFamily: "Georgia, 'Times New Roman', serif",
-          fontStyle: 'italic',
-          fontWeight: 400,
-          color: '#FFFFFF',
-        }}>
-          your strategy.
-        </span>
-      </div>
-
-      <div style={{
-        position: 'fixed',
-        top: 24,
-        right: 32,
-        zIndex: 100,
-        pointerEvents: 'auto',
-        transform: 'scale(0.35)',
-        transformOrigin: 'top right',
-      }}>
-        <MiCALogo variant="header" />
       </div>
 
       <div style={{
@@ -384,6 +402,8 @@ const DoodleMapPage: React.FC = () => {
         onFinish={handleFinish}
         onFileUpload={handleFileUpload}
         isUploading={isUploading}
+        onCustomerDataUpload={handleCustomerDataUpload}
+        isCustomerDataUploading={isCustomerDataUploading}
       />
 
       <AnimatePresence>
@@ -400,7 +420,7 @@ const DoodleMapPage: React.FC = () => {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              zIndex: 200,
+              zIndex: 150,
               background: 'radial-gradient(ellipse at 50% 40%, rgba(30,60,120,0.98) 0%, rgba(8,12,28,0.99) 70%)',
               fontFamily: "'Inter', sans-serif",
             }}

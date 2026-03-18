@@ -11,7 +11,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="min-h-screen flex flex-col text-white font-sans relative">
             <div className="bg-smoke-layer" />
             <Navbar />
-            <main className="flex-grow pt-16 relative z-10">
+            <main className="flex-grow pt-11 relative z-10">
                 {children}
             </main>
             <Footer />
