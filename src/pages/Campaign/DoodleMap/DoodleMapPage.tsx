@@ -1,7 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../../context/AuthContext';
+import { useAnimationContext } from '../../../context/AnimationContext';
+import { useEyeballMood } from '../../../contexts/EyeballMoodContext';
 import { supabase } from '../../../lib/supabase';
 import MiCALogo from '../../../components/MiCALogo';
 import DoodleCanvas from './DoodleCanvas';
@@ -14,6 +16,9 @@ import '../../../App.css';
 const DoodleMapPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { setMode, setGazeTarget } = useAnimationContext();
+  const { setMood: setEyeballMood } = useEyeballMood();
+  const loadingTextRef = useRef<HTMLDivElement>(null);
 
   const [visibleNodes, setVisibleNodes] = useState<Set<string>>(new Set(['start']));
   const [drawnEdges, setDrawnEdges] = useState<Set<string>>(new Set());
@@ -94,6 +99,11 @@ const DoodleMapPage: React.FC = () => {
         setStep(8);
         break;
       }
+      case 'location':
+        if (!values.location.trim()) return;
+        showNode('tone', 'e11');
+        setStep(9);
+        break;
       default:
         break;
     }
@@ -142,10 +152,6 @@ const DoodleMapPage: React.FC = () => {
     }
 
     switch (nodeId) {
-      case 'location':
-        showNode('tone', 'e11');
-        setStep(9);
-        break;
       case 'tone':
         showNode('attachDoc', 'e12');
         setStep(10);
@@ -167,12 +173,20 @@ const DoodleMapPage: React.FC = () => {
     setActiveNode(nodeId);
   }, [visibleNodes, values, hideNodes]);
 
-  const handleFinish = useCallback(() => {
-    setFinished(true);
-  }, []);
-
   const handleFileUpload = useCallback(async (file: File) => {
-    if (!user?.id) return;
+    // Move forward immediately once a file is chosen; upload can complete in background.
+    setValues((prev) => ({
+      ...prev,
+      attachedDocName: file.name,
+    }));
+    setYesNoAnswers((prev) => ({ ...prev, attachDoc: true }));
+    showNode('letsGo', 'e13');
+    setStep(11);
+
+    if (!user?.id || DEMO_MODE_ENABLED()) {
+      return;
+    }
+
     setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop() || 'bin';
@@ -182,17 +196,12 @@ const DoodleMapPage: React.FC = () => {
         .upload(path, file);
       if (error) {
         console.error('File upload failed:', error);
-        setIsUploading(false);
         return;
       }
       setValues((prev) => ({
         ...prev,
         attachedDocUrl: path,
-        attachedDocName: file.name,
       }));
-      setYesNoAnswers((prev) => ({ ...prev, attachDoc: true }));
-      showNode('letsGo', 'e13');
-      setStep(11);
     } catch (err) {
       console.error('File upload error:', err);
     } finally {
@@ -259,6 +268,24 @@ const DoodleMapPage: React.FC = () => {
       setSubmitting(false);
     }
   }, [user, values, navigate, submitting]);
+
+  const handleFinish = useCallback(() => {
+    setFinished(true);
+    setMode('generating');
+    setEyeballMood('concentrating');
+    setTimeout(() => {
+      if (loadingTextRef.current) {
+        const rect = loadingTextRef.current.getBoundingClientRect();
+        setGazeTarget({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+      }
+    }, 200);
+    setTimeout(() => {
+      setMode('idle');
+      setEyeballMood('idle');
+      setGazeTarget(null);
+      handleLaunch();
+    }, 2400);
+  }, [handleLaunch, setMode, setEyeballMood, setGazeTarget]);
 
   return (
     <div style={{
@@ -374,45 +401,37 @@ const DoodleMapPage: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'center',
               zIndex: 200,
-              background: 'rgba(6,6,14,0.93)',
+              background: 'radial-gradient(ellipse at 50% 40%, rgba(30,60,120,0.98) 0%, rgba(8,12,28,0.99) 70%)',
               fontFamily: "'Inter', sans-serif",
             }}
           >
             <motion.div
-              initial={{ scale: 0.5, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.15 }}
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 18, delay: 0.1 }}
               style={{ textAlign: 'center' }}
             >
-              <div style={{ fontSize: 52, marginBottom: 18 }}>✨</div>
-              <div style={{ fontSize: 34, fontWeight: 800, color: '#fff', marginBottom: 6, letterSpacing: '-1px' }}>
-                Your campaign is ready.
-              </div>
-              <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)', marginBottom: 36 }}>
-                MiCA is building your 4-week plan…
-              </div>
-              <button
-                type="button"
-                onClick={handleLaunch}
-                disabled={submitting}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
                 style={{
-                  padding: '13px 36px',
-                  background: MICA_ORANGE,
-                  borderRadius: 32,
-                  color: '#fff',
-                  fontWeight: 700,
-                  fontSize: 14,
-                  cursor: submitting ? 'wait' : 'pointer',
-                  boxShadow: '0 0 30px rgba(255,90,0,0.45)',
-                  border: 'none',
-                  fontFamily: "'Inter', sans-serif",
-                  opacity: submitting ? 0.7 : 1,
+                  width: 52, height: 52, margin: '0 auto 28px',
+                  border: '4px solid rgba(100,160,255,0.18)',
+                  borderTopColor: '#4d9fff',
+                  borderRadius: '50%',
                 }}
+              />
+              <div
+                ref={loadingTextRef}
+                style={{ fontSize: 28, fontWeight: 800, color: '#fff', marginBottom: 10, letterSpacing: '-0.5px' }}
               >
-                {submitting ? 'Creating…' : 'View Campaign →'}
-              </button>
+                Generating tone preview…
+              </div>
+              <div style={{ fontSize: 14, color: 'rgba(180,210,255,0.5)' }}>
+                This will only take a moment
+              </div>
               {launchError && (
-                <div style={{ fontSize: 13, color: '#ff6666', marginTop: 14, fontWeight: 500 }}>
+                <div style={{ fontSize: 13, color: '#ff6666', marginTop: 18, fontWeight: 500 }}>
                   {launchError}
                 </div>
               )}

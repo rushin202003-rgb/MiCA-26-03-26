@@ -9,34 +9,33 @@ export const NODE_BG =
 export const LABEL_COLOR = 'rgba(255,255,255,0.6)';
 
 export const NODE_POSITIONS: Record<string, NodePosition> = {
-  // Nudge the start node a bit to the right and slightly larger so its shape is fully visible
-  start:        { x: 340,  y: 420, r: 82  },
-  productName:  { x: 560,  y: 400, r: 130 },
-  whatDoesItDo: { x: 560,  y: 700, r: 135 },
-  whoIsItFor:   { x: 840,  y: 250, r: 125 },
-  hasDate:      { x: 840,  y: 560, r: 115 },
-  datePicker:   { x: 1100, y: 680, r: 115 },
-  hasBudget:    { x: 1360, y: 460, r: 115 },
-  howMuch:      { x: 1600, y: 320, r: 120 },
-  location:     { x: 1840, y: 500, r: 115 },
-  tone:         { x: 2080, y: 340, r: 145 },
-  attachDoc:    { x: 2320, y: 500, r: 110 },
-  letsGo:       { x: 2540, y: 400, r: 85  },
+  start:        { x: 240,  y: 420,  r: 82  },
+  productName:  { x: 500,  y: 320,  r: 130 },
+  whatDoesItDo: { x: 620,  y: 610,  r: 130 },
+  whoIsItFor:   { x: 860,  y: 380,  r: 120 },
+  hasDate:      { x: 1080, y: 240,  r: 114 },
+  datePicker:   { x: 1090, y: 430,  r: 114 },
+  hasBudget:    { x: 1330, y: 430,  r: 114 },
+  howMuch:      { x: 1330, y: 630,  r: 114 },
+  location:     { x: 1620, y: 280,  r: 114 },
+  tone:         { x: 1730, y: 830,  r: 145 },
+  attachDoc:    { x: 2050, y: 830,  r: 110 },
+  letsGo:       { x: 1880, y: 1120, r: 88  },
 };
 
 export const NODES: NodeDef[] = [
   { id: 'start',        label: 'Start',                   inputType: 'button' },
-  { id: 'productName',  label: 'Campaign Name',            inputType: 'text',     placeholder: 'The Art of Living Happiness Programme - May 2026',           valueKey: 'name' },
+  { id: 'productName',  label: 'Product Name',             inputType: 'text',     placeholder: 'The Art of Living Happiness Programme - May 2026',           valueKey: 'name' },
   { id: 'whatDoesItDo', label: "What's this for?",        inputType: 'textarea', placeholder: 'Meditation Classes',  valueKey: 'desc' },
   { id: 'whoIsItFor',   label: 'Who is it for?',          inputType: 'text',     placeholder: 'IT folks, age 25-55',  valueKey: 'audience' },
   { id: 'hasDate',      label: 'Does it have a date?',    inputType: 'yesno' },
   { id: 'datePicker',   label: 'Select Date',             inputType: 'date',     valueKey: 'date' },
   { id: 'hasBudget',    label: 'Have a budget in mind?',  inputType: 'yesno' },
   { id: 'howMuch',      label: 'How much?',               inputType: 'text',     placeholder: 'e.g. 50000',                   valueKey: 'budgetAmount' },
-  { id: 'location',     label: 'Location',                inputType: 'choice',   choices: ['City', 'Online'],                 valueKey: 'location' },
-  { id: 'tone',         label: 'Tone',                    inputType: 'choice',   choices: ['Casual', 'Professional', 'Warm & Inspirational', 'Urgent & Scarcity', 'Authority', 'Witty & Irreverent'], valueKey: 'tone' },
+  { id: 'location',     label: 'Location',                inputType: 'text',     placeholder: 'Any city / village / area',    valueKey: 'location' },
+  { id: 'tone',         label: 'Which tone do you prefer?', inputType: 'choice', choices: ['Casual :)', 'Warm & Inspirational', 'Urgent!', 'Professional'], valueKey: 'tone' },
   { id: 'attachDoc',    label: 'Want to attach a doc?',   inputType: 'yesno' },
-  { id: 'letsGo',       label: "LET'S GO!",               inputType: 'button' },
+  { id: 'letsGo',       label: "Generate tone preview",    inputType: 'button' },
 ];
 
 export const EDGES: EdgeDef[] = [
@@ -57,8 +56,8 @@ export const EDGES: EdgeDef[] = [
 
 export const STEP_TOTAL = 11;
 
-export const SPRING_PAN = { stiffness: 50, damping: 25 };
-export const SPRING_SCALE = { stiffness: 80, damping: 20 };
+export const SPRING_PAN = { stiffness: 44, damping: 26 };
+export const SPRING_SCALE = { stiffness: 65, damping: 18 };
 export const DRIFT_FACTOR = 0.02;
 export const DRIFT_MAX = 20;
 export const DRAG_ELASTIC = 0.15;

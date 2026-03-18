@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
 import { NODE_POSITIONS, EDGES, MICA_ORANGE } from './constants';
+import type { NodePosition } from './types';
 
 // Build a smooth, single-curve path between two nodes, connecting their centres.
-function arcPath(fromId: string, toId: string): { d: string; length: number } {
-  const a = NODE_POSITIONS[fromId];
-  const b = NODE_POSITIONS[toId];
+function arcPath(fromId: string, toId: string, nodePositions: Record<string, NodePosition>): { d: string; length: number } {
+  const a = nodePositions[fromId];
+  const b = nodePositions[toId];
   if (!a || !b) return { d: '', length: 0 };
 
   const dx = b.x - a.x;
@@ -41,15 +42,17 @@ function arcPath(fromId: string, toId: string): { d: string; length: number } {
 interface NoodleConnectionsProps {
   drawnEdges: Set<string>;
   yesNoAnswers: Record<string, boolean | null>;
+  nodePositions?: Record<string, NodePosition>;
 }
 
-const NoodleConnections: React.FC<NoodleConnectionsProps> = ({ drawnEdges, yesNoAnswers }) => {
+const NoodleConnections: React.FC<NoodleConnectionsProps> = ({ drawnEdges, yesNoAnswers, nodePositions }) => {
+  const positions = nodePositions ?? NODE_POSITIONS;
   const paths = useMemo(() => {
     return EDGES.map((edge) => ({
       ...edge,
-      ...arcPath(edge.from, edge.to),
+      ...arcPath(edge.from, edge.to, positions),
     }));
-  }, []);
+  }, [positions]);
 
   return (
     <svg

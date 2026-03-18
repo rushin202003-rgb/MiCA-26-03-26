@@ -6,7 +6,7 @@ import {
   SPRING_PAN,
   SPRING_SCALE,
 } from './constants';
-import type { FormValues } from './types';
+import type { FormValues, NodePosition } from './types';
 import DoodleNode from './DoodleNode';
 import NoodleConnections from './NoodleConnections';
 
@@ -28,6 +28,21 @@ interface DoodleCanvasProps {
   isUploading: boolean;
 }
 
+const CAMERA_GUIDE: Record<string, { x: number; y: number; scale: number }> = {
+  start: { x: 18, y: 22, scale: 1.0 },
+  productName: { x: 14, y: 16, scale: 1.03 },
+  whatDoesItDo: { x: 12, y: 14, scale: 1.03 },
+  whoIsItFor: { x: 12, y: 14, scale: 1.03 },
+  hasDate: { x: 10, y: 14, scale: 1.03 },
+  datePicker: { x: 10, y: 14, scale: 1.03 },
+  hasBudget: { x: 10, y: 14, scale: 1.03 },
+  howMuch: { x: 10, y: 12, scale: 1.03 },
+  location: { x: 8, y: 14, scale: 1.03 },
+  tone: { x: 8, y: 10, scale: 1.04 },
+  attachDoc: { x: 8, y: 12, scale: 1.03 },
+  letsGo: { x: 10, y: 12, scale: 1.04 },
+};
+
 const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
   visibleNodes,
   drawnEdges,
@@ -48,8 +63,13 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState({ w: window.innerWidth, h: window.innerHeight });
   const [isDragging, setIsDragging] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [editExpansion, setEditExpansion] = useState<{ nodeId: string; focused: boolean; width: number; height: number } | null>(null);
   const userDraggedRef = useRef(false);
   const prevActiveNodeRef = useRef(activeNode);
+  const panXAnimationRef = useRef<{ stop: () => void } | null>(null);
+  const panYAnimationRef = useRef<{ stop: () => void } | null>(null);
+  const scaleAnimationRef = useRef<{ stop: () => void } | null>(null);
 
   useEffect(() => {
     const onResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight });
@@ -57,10 +77,40 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  const activePos = NODE_POSITIONS[activeNode] || NODE_POSITIONS.start;
+  const renderPositions = useMemo<Record<string, NodePosition>>(() => {
+    const next: Record<string, NodePosition> = Object.fromEntries(
+      Object.entries(NODE_POSITIONS).map(([id, p]) => [id, { ...p }]),
+    );
 
-  const panX = useMotionValue(viewport.w / 2 - activePos.x);
-  const panY = useMotionValue(viewport.h / 2 - activePos.y);
+    if (!editExpansion?.focused || !visibleNodes.has(editExpansion.nodeId)) return next;
+
+    const source = next[editExpansion.nodeId];
+    if (!source) return next;
+
+    const influenceRadius = Math.max(editExpansion.width, editExpansion.height) * 0.95;
+    const pushFactor = 0.45;
+    for (const id of visibleNodes) {
+      if (id === editExpansion.nodeId) continue;
+      const p = next[id];
+      if (!p) continue;
+      const dx = p.x - source.x;
+      const dy = p.y - source.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      if (dist >= influenceRadius) continue;
+      const unitX = dx / dist;
+      const unitY = dy / dist;
+      const push = (influenceRadius - dist) * pushFactor;
+      p.x += unitX * push;
+      p.y += unitY * push;
+    }
+    return next;
+  }, [editExpansion, visibleNodes]);
+
+  const activePos = renderPositions[activeNode] || renderPositions.start || NODE_POSITIONS.start;
+  const initialGuide = CAMERA_GUIDE[activeNode] || CAMERA_GUIDE.start;
+
+  const panX = useMotionValue(viewport.w / 2 - (activePos.x + initialGuide.x));
+  const panY = useMotionValue(viewport.h / 2 - (activePos.y + initialGuide.y));
   const springScale = useSpring(1.0, SPRING_SCALE);
 
   useEffect(() => {
@@ -68,27 +118,63 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
       userDraggedRef.current = false;
       prevActiveNodeRef.current = activeNode;
     }
-    if (userDraggedRef.current) return;
+    if (userDraggedRef.current || isDragging) return;
 
-    const pos = NODE_POSITIONS[activeNode] || NODE_POSITIONS.start;
-    const targetX = viewport.w / 2 - pos.x;
-    const targetY = viewport.h / 2 - pos.y;
+    const pos = renderPositions[activeNode] || renderPositions.start || NODE_POSITIONS.start;
+    const guide = CAMERA_GUIDE[activeNode] || CAMERA_GUIDE.start;
+    const targetX = viewport.w / 2 - (pos.x + guide.x);
+    const targetY = viewport.h / 2 - (pos.y + guide.y);
 
-    animate(panX, targetX, { type: 'spring', stiffness: SPRING_PAN.stiffness, damping: SPRING_PAN.damping });
-    animate(panY, targetY, { type: 'spring', stiffness: SPRING_PAN.stiffness, damping: SPRING_PAN.damping });
-  }, [activeNode, viewport, panX, panY]);
+    panXAnimationRef.current?.stop();
+    panYAnimationRef.current?.stop();
+    scaleAnimationRef.current?.stop();
+    panXAnimationRef.current = animate(panX, targetX, {
+      type: 'spring',
+      stiffness: SPRING_PAN.stiffness,
+      damping: SPRING_PAN.damping,
+      restSpeed: 0.5,
+      restDelta: 0.5,
+    });
+    panYAnimationRef.current = animate(panY, targetY, {
+      type: 'spring',
+      stiffness: SPRING_PAN.stiffness,
+      damping: SPRING_PAN.damping,
+      restSpeed: 0.5,
+      restDelta: 0.5,
+    });
+    scaleAnimationRef.current = animate(springScale, guide.scale, {
+      type: 'spring',
+      stiffness: SPRING_SCALE.stiffness,
+      damping: SPRING_SCALE.damping,
+      restSpeed: 0.002,
+      restDelta: 0.002,
+    });
+  }, [activeNode, viewport, panX, panY, springScale, renderPositions, isDragging]);
 
   useEffect(() => {
-    springScale.set(step === 0 ? 1.0 : 1.05);
-  }, [activeNode, step, springScale]);
+    if (step === 0) {
+      springScale.set(1.0);
+    }
+  }, [step, springScale]);
 
   const handleDragStart = useCallback(() => {
+    if (isInputFocused) return;
+    panXAnimationRef.current?.stop();
+    panYAnimationRef.current?.stop();
+    scaleAnimationRef.current?.stop();
     userDraggedRef.current = true;
     setIsDragging(true);
-  }, []);
+  }, [isInputFocused]);
 
   const handleDragEnd = useCallback(() => {
     setIsDragging(false);
+  }, []);
+
+  const handleInputFocusStateChange = useCallback((focused: boolean) => {
+    setIsInputFocused(focused);
+    if (focused) {
+      setIsDragging(false);
+    }
   }, []);
 
   const dragConstraints = useMemo(() => {
@@ -97,7 +183,7 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     for (const id of nodeIds) {
-      const n = NODE_POSITIONS[id];
+      const n = renderPositions[id];
       if (!n) continue;
       minX = Math.min(minX, n.x - n.r);
       maxX = Math.max(maxX, n.x + n.r);
@@ -114,7 +200,19 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
       top: -(maxY - viewport.h + padY),
       bottom: -minY + padY,
     };
-  }, [visibleNodes, viewport]);
+  }, [visibleNodes, viewport, renderPositions]);
+
+  const worldSize = useMemo(() => {
+    const allNodes = Object.values(renderPositions);
+    const maxX = Math.max(...allNodes.map((n) => n.x + n.r));
+    const maxY = Math.max(...allNodes.map((n) => n.y + n.r));
+    const minWidth = viewport.w * 1.9;
+    const minHeight = viewport.h * 1.8;
+    return {
+      w: Math.max(minWidth, maxX + 650),
+      h: Math.max(minHeight, maxY + 650),
+    };
+  }, [viewport, renderPositions]);
 
   return (
     <div
@@ -124,14 +222,15 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
         height: '100vh',
         overflow: 'hidden',
         position: 'relative',
-        cursor: isDragging ? 'grabbing' : 'grab',
+        cursor: isInputFocused ? 'default' : (isDragging ? 'grabbing' : 'grab'),
       }}
     >
       <motion.div
-        drag
-        dragElastic={0.08}
+        drag={!isInputFocused}
+        dragElastic={0.02}
+        dragMomentum={false}
         dragConstraints={dragConstraints}
-        dragTransition={{ power: 0.3, timeConstant: 200 }}
+        dragTransition={{ power: 0.1, timeConstant: 320 }}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         style={{
@@ -139,15 +238,19 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
           y: panY,
           scale: springScale,
           position: 'absolute',
+          width: worldSize.w,
+          height: worldSize.h,
+          background: 'transparent',
           willChange: 'transform',
         }}
       >
-        <NoodleConnections drawnEdges={drawnEdges} yesNoAnswers={yesNoAnswers} />
+        <NoodleConnections drawnEdges={drawnEdges} yesNoAnswers={yesNoAnswers} nodePositions={renderPositions} />
 
         {NODES.map((node) => (
           <DoodleNode
             key={node.id}
             node={node}
+            position={renderPositions[node.id] || NODE_POSITIONS[node.id]}
             isVisible={visibleNodes.has(node.id)}
             isActive={activeNode === node.id}
             values={values}
@@ -158,6 +261,8 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
             onChoice={onChoice}
             onStart={onStart}
             onNodeClick={onNodeClick}
+            onEditFocusChange={(payload) => setEditExpansion(payload)}
+            onInputFocusStateChange={handleInputFocusStateChange}
             onFinish={onFinish}
             onFileUpload={onFileUpload}
             isUploading={isUploading}
