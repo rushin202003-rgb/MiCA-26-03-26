@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Rocket, AlertTriangle, Upload, CheckCircle2 } from 'lucide-react';
+import { Rocket, AlertTriangle, Upload } from 'lucide-react';
 import Papa from 'papaparse';
 import { Button } from '../ui/Button';
 import { supabase } from '../../lib/supabase';
@@ -30,25 +30,28 @@ export const LaunchSection: React.FC<LaunchSectionProps> = ({
     const [isLaunching, setIsLaunching] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
-    const [uploadSuccess, setUploadSuccess] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
     const { setMode } = useAnimationContext();
+
+    // Dialog-local CSV upload state
+    const [dialogIsUploading, setDialogIsUploading] = useState(false);
+    const [dialogUploadDone, setDialogUploadDone] = useState(false);
+    const [dialogRecipientCount, setDialogRecipientCount] = useState(0);
+    const [dialogError, setDialogError] = useState<string | null>(null);
 
     const handleLaunch = async () => {
         setIsLaunching(true);
         setError(null);
         setMode('launching'); // Trigger eyeball rocket sequence
-        
+
         try {
             // Blastoff animates for exactly ~3.4s before exiting frame.
             const blastoffWait = new Promise(resolve => setTimeout(resolve, 3400));
-            
+
             if (campaignId.startsWith('demo-')) {
                 await blastoffWait;
             } else {
                 await Promise.all([
-                    generateExecutionSchedule(campaignId).then(() => 
+                    generateExecutionSchedule(campaignId).then(() =>
                         triggerWebhook('campaign_launched', {
                             campaign_id: campaignId,
                             action: 'campaign_launched',
@@ -74,14 +77,16 @@ export const LaunchSection: React.FC<LaunchSectionProps> = ({
         }
     };
 
-    const handleCSVUpload = useCallback(async (file: File) => {
+    const handleDialogFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
         if (!file.name.endsWith('.csv')) {
-            setError('Please upload a CSV file');
+            setDialogError('Please upload a CSV file');
             return;
         }
 
-        setIsUploading(true);
-        setError(null);
+        setDialogIsUploading(true);
+        setDialogError(null);
 
         Papa.parse(file, {
             header: true,
@@ -90,22 +95,21 @@ export const LaunchSection: React.FC<LaunchSectionProps> = ({
                 try {
                     const rows = results.data as Record<string, unknown>[];
                     if (rows.length === 0) {
-                        setError('CSV file is empty or has no valid data rows');
-                        setIsUploading(false);
+                        setDialogError('CSV file is empty or has no valid data rows');
+                        setDialogIsUploading(false);
                         return;
                     }
 
-                    // Map CSV columns to customer_data schema
                     const contactsToInsert = rows.map((row: any) => ({
                         campaign_id: campaignId,
                         name: row.name || row.Name || row.full_name || '',
                         email: row.email || row.Email || row.email_address || '',
                         phone: row.phone || row.Phone || row.mobile || row.whatsapp || '',
-                    })).filter(c => c.email || c.phone); // Must have at least email or phone
+                    })).filter(c => c.email || c.phone);
 
                     if (contactsToInsert.length === 0) {
-                        setError('No valid contacts found. CSV must have "email" or "phone" columns.');
-                        setIsUploading(false);
+                        setDialogError('No valid contacts found. CSV must have "email" or "phone" columns.');
+                        setDialogIsUploading(false);
                         return;
                     }
 
@@ -115,123 +119,26 @@ export const LaunchSection: React.FC<LaunchSectionProps> = ({
 
                     if (insertError) throw insertError;
 
-                    setUploadSuccess(true);
+                    setDialogUploadDone(true);
+                    setDialogRecipientCount(contactsToInsert.length);
                     if (onContactsUploaded) {
                         onContactsUploaded(contactsToInsert.length);
                     }
                 } catch (err: any) {
                     console.error('CSV upload failed:', err);
-                    setError(err.message || 'Failed to upload contacts');
+                    setDialogError(err.message || 'Failed to upload contacts');
                 } finally {
-                    setIsUploading(false);
+                    setDialogIsUploading(false);
                 }
             },
             error: (parseError) => {
-                setError('Failed to parse CSV: ' + parseError.message);
-                setIsUploading(false);
+                setDialogError('Failed to parse CSV: ' + parseError.message);
+                setDialogIsUploading(false);
             }
         });
     }, [campaignId, onContactsUploaded]);
 
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(false);
-        const file = e.dataTransfer.files[0];
-        if (file) handleCSVUpload(file);
-    }, [handleCSVUpload]);
-
-    const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) handleCSVUpload(file);
-    }, [handleCSVUpload]);
-
-    // ── NO CONTACT DATA: Show upload prompt ──
-    if (recipientCount === 0 && !uploadSuccess) {
-        return (
-            <div className="bg-gradient-to-r from-amber-900/30 to-orange-900/30 border border-amber-500/30 rounded-xl p-8 mb-8 text-center relative overflow-hidden">
-                <div className="absolute top-0 left-1/4 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl -z-10"></div>
-
-                <div className="inline-flex items-center justify-center p-3 bg-amber-500/20 rounded-full mb-5 ring-1 ring-amber-500/40">
-                    <Rocket className="w-7 h-7 text-amber-400" />
-                </div>
-
-                <h2 className="text-2xl font-bold text-white mb-2">Your Campaign is Ready — Almost! ✨</h2>
-                <p className="text-gray-300 max-w-2xl mx-auto mb-2 text-sm">
-                    All content has been generated — <span className="text-white font-medium">{emailCount} emails</span>,
-                    {whatsappCount > 0 && <span className="text-white font-medium"> {whatsappCount} WhatsApp messages</span>}
-                    {socialCount > 0 && <span className="text-white font-medium">, {socialCount} Instagram posts</span>}.
-                    Upload your customer contacts to activate delivery.
-                </p>
-                <p className="text-amber-300/60 text-xs mb-6">
-                    Your content won't regenerate — it's already locked in. Just add contacts and launch.
-                </p>
-
-                {/* CSV Upload Dropzone */}
-                <div
-                    className={`max-w-lg mx-auto border-2 border-dashed rounded-xl p-8 transition-all duration-300 cursor-pointer ${isDragging
-                        ? 'border-amber-400 bg-amber-500/10'
-                        : 'border-gray-600 hover:border-amber-500/50 bg-black/20'
-                        }`}
-                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                    onDragLeave={() => setIsDragging(false)}
-                    onDrop={handleDrop}
-                    onClick={() => document.getElementById('csv-launch-upload')?.click()}
-                >
-                    <input
-                        id="csv-launch-upload"
-                        type="file"
-                        accept=".csv"
-                        className="hidden"
-                        onChange={handleFileInput}
-                    />
-                    {isUploading ? (
-                        <div className="flex flex-col items-center gap-3">
-                            <div className="w-8 h-8 border-3 border-amber-400/30 border-t-amber-400 rounded-full animate-spin"></div>
-                            <p className="text-amber-300 text-sm font-medium">Uploading contacts...</p>
-                        </div>
-                    ) : (
-                        <>
-                            <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
-                            <p className="text-gray-300 text-sm font-medium mb-1">Drop your CSV here or click to browse</p>
-                            <p className="text-gray-500 text-xs">File must contain "email" and/or "phone" columns</p>
-                        </>
-                    )}
-                </div>
-
-                {error && (
-                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 mt-4 max-w-lg mx-auto text-sm text-red-300">
-                        {error}
-                    </div>
-                )}
-            </div>
-        );
-    }
-
-    // ── UPLOAD SUCCESS: Show transition state ──
-    if (uploadSuccess) {
-        return (
-            <div className="bg-gradient-to-r from-emerald-900/40 to-green-900/40 border border-emerald-500/30 rounded-xl p-8 mb-8 text-center relative overflow-hidden animate-in fade-in">
-                <div className="inline-flex items-center justify-center p-3 bg-emerald-500/20 rounded-full mb-5 ring-1 ring-emerald-500/40">
-                    <CheckCircle2 className="w-7 h-7 text-emerald-400" />
-                </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Contacts Uploaded Successfully! 🎉</h2>
-                <p className="text-gray-300 max-w-xl mx-auto mb-6 text-sm">
-                    Your campaign is now fully ready to launch.
-                </p>
-                <div className="flex justify-center">
-                    <Button
-                        variant="custom"
-                        onClick={() => { setUploadSuccess(false); }}
-                        className="bg-[#FF7A00] hover:bg-[#FF8800] text-white px-10 py-4 text-lg rounded-full shadow-[0_0_20px_rgba(255,122,0,0.4)] hover:shadow-[0_0_30px_rgba(255,122,0,0.6)] transform hover:scale-[1.05] transition-all duration-300 font-bold flex items-center gap-3 border border-[#FF7A00]"
-                    >
-                        <Rocket className="w-5 h-5 text-white" /> LAUNCH CAMPAIGN NOW
-                    </Button>
-                </div>
-            </div>
-        );
-    }
-
-    // ── READY STATE: Normal launch prompt ──
+    // ── COMPACT BANNER: Always visible when not confirming ──
     if (!showConfirm) {
         return (
             <div className="bg-gray-900/60 backdrop-blur-md border border-gray-800 hover:border-[#FF7A00]/60 hover:shadow-[0_20px_60px_rgba(255,122,0,0.25)] hover:-translate-y-2 rounded-xl p-6 md:p-8 mb-10 relative overflow-hidden group transition-all duration-500 cursor-default mt-4">
@@ -264,7 +171,9 @@ export const LaunchSection: React.FC<LaunchSectionProps> = ({
                             <Rocket className="w-5 h-5 text-white" /> LAUNCH CAMPAIGN NOW
                         </Button>
                         <p className="text-xs text-indigo-300/50 mt-2 text-right">
-                            {recipientCount} recipients • {recommendedChannels.length} channels
+                            {recipientCount > 0
+                                ? `${recipientCount} recipients • ${recommendedChannels.length} channels`
+                                : `${recommendedChannels.length} channels planned`}
                         </p>
                     </div>
                 </div>
@@ -273,6 +182,8 @@ export const LaunchSection: React.FC<LaunchSectionProps> = ({
     }
 
     // ── CONFIRMATION MODAL ──
+    const hasNoContacts = recipientCount === 0 && !dialogUploadDone;
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg shadow-2xl relative overflow-hidden">
@@ -286,7 +197,10 @@ export const LaunchSection: React.FC<LaunchSectionProps> = ({
                         <div>
                             <h3 className="text-xl font-bold text-white mb-2">Confirm Campaign Launch?</h3>
                             <p className="text-gray-400 leading-relaxed">
-                                This will immediately start the automation. Messages will be sent to <strong>{recipientCount} recipients</strong> according to the schedule.
+                                {recipientCount > 0
+                                    ? <>Messages will be sent to <strong>{recipientCount} recipients</strong> according to the schedule.</>
+                                    : 'This will start your campaign automation immediately.'
+                                }
                             </p>
                         </div>
                     </div>
@@ -295,8 +209,34 @@ export const LaunchSection: React.FC<LaunchSectionProps> = ({
                         <AlertTriangle className="w-5 h-5 text-yellow-500 flex-shrink-0" />
                         <div>
                             Once launched, the schedule is locked. You can pause the campaign, but you cannot undo sent messages.
+                            {hasNoContacts && (
+                                <p className="mt-1 text-amber-300">No contacts uploaded — emails and WhatsApp messages won't be sent.</p>
+                            )}
                         </div>
                     </div>
+
+                    {/* Optional CSV upload inside dialog */}
+                    {recipientCount === 0 && (
+                        <div className="border border-indigo-500/20 rounded-xl p-5 mb-6 bg-indigo-500/5">
+                            <p className="text-sm text-gray-300 mb-3">
+                                <span className="text-indigo-300 font-medium">Add customer contacts (optional)</span>
+                                <br />
+                                Add email and phone numbers to automatically send emails and WhatsApp messages to your audience.
+                            </p>
+                            {!dialogUploadDone ? (
+                                <label className="flex items-center gap-3 cursor-pointer border border-dashed border-gray-600 hover:border-indigo-400 rounded-lg p-4 text-sm text-gray-400 hover:text-gray-200 transition-colors">
+                                    <Upload className="w-4 h-4 shrink-0" />
+                                    <span>{dialogIsUploading ? 'Uploading…' : 'Upload CSV (email and/or phone columns)'}</span>
+                                    <input type="file" accept=".csv" className="hidden" onChange={handleDialogFileInput} />
+                                </label>
+                            ) : (
+                                <p className="text-green-400 text-sm flex items-center gap-2">
+                                    ✓ {dialogRecipientCount} contacts added
+                                </p>
+                            )}
+                            {dialogError && <p className="text-red-400 text-xs mt-2">{dialogError}</p>}
+                        </div>
+                    )}
 
                     {error && (
                         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6 text-sm text-red-300">

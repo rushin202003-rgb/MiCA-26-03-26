@@ -35,7 +35,8 @@
       "Bash(npm run:*)",
       "Bash(grep -l \"export\\\\|React.FC\" /d/Work/AIGF/AGProjects/MiCA-Mac/src/pages/*.tsx /d/Work/AIGF/AGProjects/MiCA-Mac/src/pages/**/*.tsx)",
       "Bash(xargs grep:*)",
-      "Bash(find D:/Work/AIGF/AGProjects/MiCA-Mac -name *.config.* -o -name tailwind.*)"
+      "Bash(find D:/Work/AIGF/AGProjects/MiCA-Mac -name *.config.* -o -name tailwind.*)",
+      "Bash(node:*)"
     ]
   }
 }

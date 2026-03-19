@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Play, Pause, RefreshCw } from 'lucide-react';
+import { Download, Play, Pause, RefreshCw, Copy, Check } from 'lucide-react';
 
 // Video Player Component
 interface VideoPlayerProps {
@@ -124,9 +124,11 @@ interface SocialPostCardProps {
     post: any;
     onGenerateImage?: (postId: string, prompt: string) => void;
     generatingImageId?: string | null;
+    onCopy?: (id: string, text: string) => void;
+    copiedId?: string | null;
 }
 
-export const SocialPostCard: React.FC<SocialPostCardProps> = ({ post, onGenerateImage, generatingImageId }) => {
+export const SocialPostCard: React.FC<SocialPostCardProps> = ({ post, onGenerateImage, generatingImageId, onCopy, copiedId }) => {
     const [imageError, setImageError] = React.useState(false);
     const [expanded, setExpanded] = React.useState(false);
 
@@ -229,6 +231,16 @@ export const SocialPostCard: React.FC<SocialPostCardProps> = ({ post, onGenerate
                         <span key={i} className="text-[10px] text-blue-400">{tag}</span>
                     ))}
                 </div>
+                {onCopy && (
+                    <button
+                        onClick={() => onCopy(post.id, `${post.caption}\n\n${post.hashtags}`)}
+                        className={`mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            copiedId === post.id ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                        }`}
+                    >
+                        {copiedId === post.id ? <><Check className="w-3 h-3" /> Copied!</> : <><Copy className="w-3 h-3" /> Copy Caption &amp; Hashtags</>}
+                    </button>
+                )}
             </div>
         </div>
     );
