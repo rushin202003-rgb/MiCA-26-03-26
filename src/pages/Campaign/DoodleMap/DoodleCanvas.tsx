@@ -189,6 +189,13 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
     }
   }, []);
 
+  const handleEditFocusChange = useCallback(
+    (payload: { nodeId: string; focused: boolean; width: number; height: number } | null) => {
+      setEditExpansion(payload);
+    },
+    []
+  );
+
   const dragConstraints = useMemo(() => {
     const nodeIds = Array.from(visibleNodes);
     if (nodeIds.length === 0) return { left: 0, right: 0, top: 0, bottom: 0 };
@@ -269,12 +276,12 @@ const DoodleCanvas: React.FC<DoodleCanvasProps> = ({
             values={values}
             yesNoAnswers={yesNoAnswers}
             onValueChange={onValueChange}
-            onAdvance={() => onAdvance(node.id)}
+            onAdvance={onAdvance}
             onYesNo={onYesNo}
             onChoice={onChoice}
             onStart={onStart}
             onNodeClick={onNodeClick}
-            onEditFocusChange={(payload) => setEditExpansion(payload)}
+            onEditFocusChange={handleEditFocusChange}
             onInputFocusStateChange={handleInputFocusStateChange}
             onFinish={onFinish}
             onFileUpload={onFileUpload}

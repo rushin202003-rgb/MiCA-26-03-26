@@ -19,7 +19,7 @@ interface Campaign {
     tone: string;
     tone_custom_words: string;
     tone_revision_used: boolean;
-    tone_preview_content: any; // API response JSON
+    tone_preview_content: TonePreviewData | null;
     product_document_url?: string; // We'd need to fetch content if this exists, skipping for now as per instructions
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
@@ -75,6 +75,15 @@ Rules:
 - Social post should be scroll-stopping and visual-friendly
 - For recommended_channels: ALWAYS include "email" and "whatsapp". Only add "instagram" if budget >= ₹5000. Only add "voice_agent" if budget >= ₹15000. Only add "video_ad" if budget >= ₹25000.`;
 
+const CHANNEL_LABELS: Record<string, string> = {
+    email: 'Email Marketing',
+    whatsapp: 'WhatsApp',
+    instagram: 'Instagram',
+    video_ad: 'Video Ads',
+};
+
+const TONE_OPTIONS = ['Professional', 'Warm & Inspirational', 'Urgent', 'Casual', 'Custom'] as const;
+
 export const TonePreview: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -98,7 +107,7 @@ export const TonePreview: React.FC = () => {
         if (!id) return;
 
         if (DEMO_MODE_ENABLED()) {
-            setCampaign(DEMO_CAMPAIGN as any);
+            setCampaign({ ...DEMO_CAMPAIGN, tone_revision_used: false });
             setNewTone(DEMO_CAMPAIGN.tone);
             setCustomFeedback(DEMO_CAMPAIGN.tone_custom_words || '');
             setPreviewData(DEMO_CAMPAIGN.tone_preview_content);
@@ -204,7 +213,7 @@ Generate the tone preview samples now.`;
             }
 
             // Save to database
-            const updates: any = {
+            const updates: Partial<Campaign> & { tone_preview_content?: TonePreviewData; recommended_channels?: string[] } = {
                 tone_preview_content: aiResponse,
                 recommended_channels: aiResponse.recommended_channels
             };
@@ -227,9 +236,9 @@ Generate the tone preview samples now.`;
             setCampaign(prev => prev ? ({ ...prev, ...updates }) : null);
             setIsEditing(false);
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Generation Error:", err);
-            setError(err.message || "Failed to generate preview");
+            setError(err instanceof Error ? err.message : "Failed to generate preview");
         } finally {
             setGenerating(false);
             setLoading(false);
@@ -355,12 +364,6 @@ Generate the tone preview samples now.`;
                         <div className="flex flex-wrap gap-3">
                             {['email', 'whatsapp', 'instagram', 'video_ad'].map(channel => {
                                 const supported = isChannelSupported(channel);
-                                const labels: Record<string, string> = {
-                                    email: 'Email Marketing',
-                                    whatsapp: 'WhatsApp',
-                                    instagram: 'Instagram',
-                                    video_ad: 'Video Ads'
-                                };
                                 return (
                                     <div
                                         key={channel}
@@ -371,7 +374,7 @@ Generate the tone preview samples now.`;
                                             }`}
                                     >
                                         {supported ? <Check className="w-3 h-3" /> : <div className="w-3 h-3 rounded-full bg-gray-600" />}
-                                        {labels[channel]}
+                                        {CHANNEL_LABELS[channel]}
                                         {!supported && <span className="text-xs ml-1 opacity-70">({getBudgetUpgradeText(channel)})</span>}
                                     </div>
                                 );
@@ -473,11 +476,7 @@ Generate the tone preview samples now.`;
                                             onChange={(e) => setNewTone(e.target.value)}
                                             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-indigo-500 text-white"
                                         >
-                                            <option>Professional</option>
-                                            <option>Warm & Inspirational</option>
-                                            <option>Urgent</option>
-                                            <option>Casual</option>
-                                            <option>Custom</option>
+                                            {TONE_OPTIONS.map(t => <option key={t}>{t}</option>)}
                                         </select>
                                     </div>
                                     <div className="flex-[2] w-full">

@@ -56,8 +56,8 @@ export async function callAI({ systemPrompt, userPrompt, maxTokens = 4000, tempe
 
         const data = await response.json();
         return data.choices?.[0]?.message?.content || "";
-    } catch (error: any) {
-        if (error.name === 'AbortError') {
+    } catch (error: unknown) {
+        if (error instanceof Error && error.name === 'AbortError') {
             throw new Error("AI request timed out. The model is taking too long to respond. Please try again.");
         }
         console.error("AI Service Error:", error);

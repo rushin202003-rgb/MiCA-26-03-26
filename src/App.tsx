@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AnimationProvider } from './context/AnimationContext';
@@ -9,12 +9,13 @@ import { DemoModeToggle } from './components/DemoModeToggle';
 import { LandingPage } from './pages/LandingPage';
 import { Login } from './pages/Auth/Login';
 import { Signup } from './pages/Auth/Signup';
-import { CreateCampaign } from './pages/Campaign/CreateCampaign';
-import { TonePreview } from './pages/Campaign/TonePreview';
-import { GeneratingCampaign } from './pages/Campaign/GeneratingCampaign';
-import { Dashboard } from './pages/Campaign/Dashboard';
-import { CampaignList } from './pages/CampaignList';
-import { DemoPrep } from './pages/DemoPrep';
+
+const CreateCampaign = lazy(() => import('./pages/Campaign/CreateCampaign').then(m => ({ default: m.CreateCampaign })));
+const TonePreview = lazy(() => import('./pages/Campaign/TonePreview').then(m => ({ default: m.TonePreview })));
+const GeneratingCampaign = lazy(() => import('./pages/Campaign/GeneratingCampaign').then(m => ({ default: m.GeneratingCampaign })));
+const Dashboard = lazy(() => import('./pages/Campaign/Dashboard').then(m => ({ default: m.Dashboard })));
+const CampaignList = lazy(() => import('./pages/CampaignList').then(m => ({ default: m.CampaignList })));
+const DemoPrep = lazy(() => import('./pages/DemoPrep').then(m => ({ default: m.DemoPrep })));
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -95,26 +96,28 @@ function App() {
         {/* The Floating Autonomous Hero Element (Global) */}
         <FloatingHeroEyeball onGiggle={() => triggerVignette(2500)} version={eyeVersion} />
 
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage version={eyeVersion} onVersionChange={setEyeVersion} />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+        <Suspense fallback={<div className="flex h-screen items-center justify-center bg-gray-950"><div className="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" /></div>}>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage version={eyeVersion} onVersionChange={setEyeVersion} />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
 
-          {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/campaigns" element={<CampaignList />} />
-            <Route path="/create-campaign" element={<CreateCampaign />} />
-            <Route path="/campaign/:id/tone-preview" element={<TonePreview />} />
-            <Route path="/campaign/:id/generating" element={<GeneratingCampaign />} />
-            <Route path="/campaign/:id/dashboard" element={<Dashboard />} />
-            <Route path="/dashboard" element={<Navigate to="/campaigns" replace />} />
-            <Route path="/demo-prep" element={<DemoPrep />} />
-          </Route>
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/campaigns" element={<CampaignList />} />
+              <Route path="/create-campaign" element={<CreateCampaign />} />
+              <Route path="/campaign/:id/tone-preview" element={<TonePreview />} />
+              <Route path="/campaign/:id/generating" element={<GeneratingCampaign />} />
+              <Route path="/campaign/:id/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Navigate to="/campaigns" replace />} />
+              <Route path="/demo-prep" element={<DemoPrep />} />
+            </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
           </EyeballMoodProvider>
         </AnimationProvider>
       </AuthProvider>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import WaitlistModal from '../components/WaitlistModal';
 import { Sparkles, FileText, Rocket } from "lucide-react";
@@ -10,6 +10,23 @@ import EyeCharacter from '../components/EyeCharacter';
 import { useTypewriter } from '../hooks/useTypewriter';
 import { motion } from 'framer-motion';
 import '../App.css';
+
+const LazyVideo: React.FC<{ src: string; className?: string }> = ({ src, className }) => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [inView, setInView] = useState(false);
+    useEffect(() => {
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) { setInView(true); observer.disconnect(); }
+        }, { rootMargin: '200px' });
+        if (ref.current) observer.observe(ref.current);
+        return () => observer.disconnect();
+    }, []);
+    return (
+        <div ref={ref} className="w-full h-full">
+            {inView && <video autoPlay loop muted playsInline className={className}><source src={src} type="video/mp4" /></video>}
+        </div>
+    );
+};
 
 const dynamicPhrases = [
     "runs itself",
@@ -297,9 +314,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
                                         <EyeCharacter size={40} version={eyeVersion} />
                                     </div>
                                     <div className="absolute inset-0 z-10 bg-gray-800/80 rounded-2xl border border-gray-700 shadow-2xl overflow-hidden pointer-events-none">
-                                        <video autoPlay loop muted playsInline className="w-full h-full object-cover scale-110 opacity-90 hover:opacity-100 transition-opacity pointer-events-auto">
-                                            <source src="/media/video1.mp4" type="video/mp4" />
-                                        </video>
+                                        <LazyVideo src="/media/video1.mp4" className="w-full h-full object-cover scale-110 opacity-90 hover:opacity-100 transition-opacity pointer-events-auto" />
                                     </div>
                                 </div>
                                 {/* Video 2 — higher (breaks symmetry) */}
@@ -309,9 +324,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
                                         <EyeCharacter size={45} version={eyeVersion} />
                                     </div>
                                     <div className="absolute inset-0 z-10 bg-gray-800/90 rounded-2xl border border-gray-600 shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden pointer-events-none">
-                                        <video autoPlay loop muted playsInline className="w-full h-full object-cover pointer-events-auto">
-                                            <source src="/media/video2.mp4" type="video/mp4" />
-                                        </video>
+                                        <LazyVideo src="/media/video2.mp4" className="w-full h-full object-cover pointer-events-auto" />
                                     </div>
                                 </div>
                                 {/* Video 3 — middle height */}
@@ -321,9 +334,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
                                         <EyeCharacter size={50} version={eyeVersion} />
                                     </div>
                                     <div className="absolute inset-0 z-10 bg-gray-900 rounded-2xl border-2 border-indigo-500/30 shadow-2xl overflow-hidden pointer-events-none">
-                                        <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity pointer-events-auto">
-                                            <source src={LANDING_VIDEOS.DEMO_PORTRAIT} type="video/mp4" />
-                                        </video>
+                                        <LazyVideo src={LANDING_VIDEOS.DEMO_PORTRAIT} className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity pointer-events-auto" />
                                     </div>
                                 </div>
                             </div>

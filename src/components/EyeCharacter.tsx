@@ -23,6 +23,11 @@ const ROCKET_PATH = "M 44.75 3 C 44.75 3 20 25.25 20 54.5 C 20 61.5 22.5 67.5 26
 // ─────────────────────────────────────────────────────────────────────────────
 const BASELINE = 240;
 
+const GIGGLE_KEYFRAMES = {
+  rotate: [-6, 6, -5, 5, -4, 4, -3, 3, -2, 2, -1, 1, 0],
+  y: [2, -4, 2, -4, 2, -3, 1, -3, 1, -2, 0, -1, 0],
+} as const;
+
 function scale(baseline: number, value: number) {
   return (baseline / BASELINE) * value;
 }
@@ -65,8 +70,8 @@ export default function EyeCharacter({ size = 108, onGiggle, version = 'modern' 
     if (onGiggle) onGiggle(); // Trigger the callback (e.g. for showing peeking vignette)
 
     await gigglesControls.start({
-      rotate: [-6, 6, -5, 5, -4, 4, -3, 3, -2, 2, -1, 1, 0],
-      y: [2, -4, 2, -4, 2, -3, 1, -3, 1, -2, 0, -1, 0],
+      rotate: GIGGLE_KEYFRAMES.rotate,
+      y: GIGGLE_KEYFRAMES.y,
       transition: { duration: 0.85, ease: 'easeOut' },
     });
     await gigglesControls.start({
@@ -178,16 +183,11 @@ export default function EyeCharacter({ size = 108, onGiggle, version = 'modern' 
         setIsGiggling(true);
 
         // 6. Shake/giggle once after recovering!
-        await Promise.all([
-          gigglesControls.start({
-            rotate: [-6, 6, -5, 5, -4, 4, -3, 3, -2, 2, -1, 1, 0],
-            transition: { duration: 0.85, ease: 'easeOut' },
-          }),
-          gigglesControls.start({
-            y: [2, -4, 2, -4, 2, -3, 1, -3, 1, -2, 0, -1, 0],
-            transition: { duration: 0.85, ease: 'easeOut' },
-          })
-        ]);
+        await gigglesControls.start({
+          rotate: GIGGLE_KEYFRAMES.rotate,
+          y: GIGGLE_KEYFRAMES.y,
+          transition: { duration: 0.85, ease: 'easeOut' },
+        });
         await gigglesControls.start({ rotate: 0, y: 0, transition: { duration: 0.2, ease: 'easeOut' } });
 
         setIsGiggling(false);

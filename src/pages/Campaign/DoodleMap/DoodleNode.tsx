@@ -48,7 +48,7 @@ interface DoodleNodeProps {
   values: FormValues;
   yesNoAnswers: Record<string, boolean | null>;
   onValueChange: (key: string, value: string) => void;
-  onAdvance: () => void;
+  onAdvance: (nodeId: string) => void;
   onYesNo: (nodeId: string, answer: boolean) => void;
   onChoice: (nodeId: string, value: string) => void;
   onStart: () => void;
@@ -202,13 +202,13 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
     if (e.key === 'Enter') {
       if (node.inputType === 'textarea' && !e.shiftKey) {
         e.preventDefault();
-        onAdvance();
+        onAdvance(node.id);
       } else if (node.inputType === 'text' && node.id !== 'howMuch') {
         e.preventDefault();
-        onAdvance();
+        onAdvance(node.id);
       } else if (node.inputType !== 'textarea') {
         if (node.id === 'howMuch' && !isBudgetValid(currentValue)) return;
-        onAdvance();
+        onAdvance(node.id);
       }
     }
   };
@@ -471,7 +471,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                     />
                     {currentValue.trim() && (
                       <div
-                        onClick={onAdvance}
+                        onClick={() => onAdvance(node.id)}
                         style={{ fontSize: 18, color: '#fff', background: 'transparent', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 9999, padding: '12px 32px', cursor: 'pointer', fontWeight: 700, marginTop: 12 }}
                       >
                         press Enter ↓
@@ -501,7 +501,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                     </button>
                     <button
                       type="button"
-                      onClick={() => { onValueChange('location', 'Online'); onAdvance(); }}
+                      onClick={() => { onValueChange('location', 'Online'); onAdvance(node.id); }}
                       style={{
                         padding: '14px 38px',
                         borderRadius: 9999,
@@ -559,7 +559,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                     />
                     {currentValue.trim() && (
                       <div
-                        onClick={onAdvance}
+                        onClick={() => onAdvance(node.id)}
                         style={{ fontSize: 18, color: '#fff', background: 'transparent', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 9999, padding: '12px 32px', cursor: 'pointer', fontWeight: 700, marginTop: 12 }}
                       >
                         press Enter ↓
@@ -614,7 +614,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                     )}
                     {isBudgetValid(currentValue) && (
                       <div
-                        onClick={onAdvance}
+                        onClick={() => onAdvance(node.id)}
                         style={{ fontSize: 18, color: '#fff', background: 'transparent', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 9999, padding: '12px 32px', cursor: 'pointer', fontWeight: 700, marginTop: 12 }}
                       >
                         press Enter ↓
@@ -662,7 +662,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                     />
                     {currentValue.trim() && (
                       <div
-                        onClick={onAdvance}
+                        onClick={() => onAdvance(node.id)}
                         style={{ fontSize: 18, color: '#fff', background: 'transparent', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 9999, padding: '12px 32px', cursor: 'pointer', fontWeight: 700, marginTop: 12 }}
                       >
                         next →
@@ -703,7 +703,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                     />
                     {currentValue && (
                       <div
-                        onClick={onAdvance}
+                        onClick={() => onAdvance(node.id)}
                         style={{ fontSize: 18, color: '#fff', background: 'transparent', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 9999, padding: '12px 32px', cursor: 'pointer', fontWeight: 700, marginTop: 12 }}
                       >
                         confirm →
@@ -898,7 +898,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                           placeholder="e.g. spiritual, gentle, uplifting"
                           value={values.customTone}
                           onChange={e => onValueChange('customTone', e.target.value)}
-                          onKeyDown={e => { if (e.key === 'Enter' && values.customTone.trim()) onAdvance(); }}
+                          onKeyDown={e => { if (e.key === 'Enter' && values.customTone.trim()) onAdvance(node.id); }}
                           style={{
                             width: '100%', background: 'rgba(0,0,0,0.35)', border: '2px solid rgba(255,255,255,0.7)',
                             borderRadius: 12, color: '#fff', fontFamily: "'Inter', sans-serif",
@@ -908,7 +908,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                         />
                         {values.customTone.trim() && (
                           <div
-                            onClick={onAdvance}
+                            onClick={() => onAdvance(node.id)}
                             style={{ marginTop: 8, fontSize: 16, color: '#fff', background: 'transparent',
                               border: '2px solid rgba(255,255,255,0.4)', borderRadius: 9999,
                               padding: '8px 24px', cursor: 'pointer', fontWeight: 700, textAlign: 'center', pointerEvents: 'auto' }}
@@ -988,4 +988,4 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
   );
 };
 
-export default DoodleNode;
+export default React.memo(DoodleNode);
