@@ -161,6 +161,13 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
     }
   }, [isActive, onInputFocusStateChange]);
 
+  useEffect(() => {
+    if (locationCityMode && inputRef.current) {
+      const timer = setTimeout(() => inputRef.current?.focus(), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [locationCityMode]);
+
   useEffect(() => () => {
     if (typingBoostTimeoutRef.current != null) window.clearTimeout(typingBoostTimeoutRef.current);
   }, []);
@@ -662,7 +669,7 @@ const DoodleNode: React.FC<DoodleNodeProps> = ({
                     />
                     {currentValue.trim() && (
                       <div
-                        onClick={() => onAdvance(node.id)}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); onAdvance(node.id); }}
                         style={{ fontSize: 18, color: '#fff', background: 'transparent', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 9999, padding: '12px 32px', cursor: 'pointer', fontWeight: 700, marginTop: 12 }}
                       >
                         next →

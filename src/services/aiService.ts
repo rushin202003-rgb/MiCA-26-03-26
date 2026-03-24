@@ -7,10 +7,10 @@ interface AIRequestOptions {
     temperature?: number;
 }
 
-export async function callAI({ systemPrompt, userPrompt, maxTokens = 4000, temperature = 0.7 }: AIRequestOptions): Promise<string> {
+export async function callAI({ systemPrompt, userPrompt, maxTokens = 8000, temperature = 0.7 }: AIRequestOptions): Promise<string> {
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
     // Use user-provided model or fall back to a sensible default
-    const model = import.meta.env.VITE_OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet";
+    const model = import.meta.env.VITE_OPENROUTER_MODEL || "anthropic/claude-opus-4-6";
 
     console.log("AI Service: Initiating call...", { model, maxTokens });
 

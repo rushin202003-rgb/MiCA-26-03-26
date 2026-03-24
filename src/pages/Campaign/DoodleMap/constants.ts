@@ -27,7 +27,7 @@ export const NODE_POSITIONS: Record<string, NodePosition> = {
 export const NODES: NodeDef[] = [
   { id: 'start',        label: 'Start',                   inputType: 'button' },
   { id: 'productName',  label: 'Product Name',             inputType: 'text',     placeholder: 'Name of your product or event.',           valueKey: 'name' },
-  { id: 'whatDoesItDo', label: "What does it do?",         inputType: 'textarea', placeholder: 'Product details- add details of your product here',     valueKey: 'desc' },
+  { id: 'whatDoesItDo', label: "What does it do?",         inputType: 'textarea', placeholder: 'Product details, registration links and more',     valueKey: 'desc' },
   { id: 'whoIsItFor',   label: 'Who is it for?',          inputType: 'text',     placeholder: 'Your target audience',      valueKey: 'audience' },
   { id: 'hasDate',      label: 'Does it have a date?',    inputType: 'yesno' },
   { id: 'datePicker',   label: 'Select Date',             inputType: 'date',     valueKey: 'date' },

@@ -13,7 +13,7 @@ export const HEYGEN_CONFIG = {
 
     // FALLBACK: Pre-generated video URL to use when API credits are exhausted
     // Replace this with one of your pre-made HeyGen videos
-    FALLBACK_VIDEO_URL: "YOUR_PREGENERATED_VIDEO_URL_HERE",  // TODO: Replace
+    FALLBACK_VIDEO_URL: "/demo-assets/campaign-video.mp4",
 
     // Set to false to skip HeyGen API calls entirely and always use fallback
     // Useful during development to conserve credits

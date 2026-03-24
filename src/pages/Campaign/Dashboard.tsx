@@ -1170,8 +1170,8 @@ export const Dashboard: React.FC = () => {
         ...(isLive ? [{ id: 'campaign_live', label: 'Campaign Live', icon: CheckCircle2, show: true }] : []),
         { id: 'overview', label: 'Strategy', icon: LayoutDashboard, show: true },
         { id: 'emails', label: 'Emails', icon: Mail, show: true },
-        { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare, show: campaign.recommended_channels.includes('whatsapp') },
-        { id: 'social', label: 'Instagram', icon: Instagram, show: campaign.recommended_channels.includes('instagram') },
+        { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare, show: true },
+        { id: 'social', label: 'Instagram', icon: Instagram, show: true },
         { id: 'video_ad', label: 'Video Ad', icon: Video, show: campaign.recommended_channels.includes('video_ad') },
         { id: 'execution_log', label: 'Execution Log', icon: LayoutDashboard, show: true }, // Always show log
         { id: 'video_ads_placeholder', label: 'Video Advertisements', icon: Video, show: true }

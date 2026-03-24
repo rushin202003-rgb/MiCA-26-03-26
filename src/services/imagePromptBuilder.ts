@@ -1,13 +1,13 @@
 export function buildImagePrompt(imageSuggestion: string, productName: string, tone: string): string {
     const toneStyles: Record<string, string> = {
-        "Professional & Trustworthy": "clean, corporate, minimal, professional photography style, soft lighting, muted elegant colors",
-        "Warm & Inspirational": "warm golden light, hopeful, uplifting, natural colors, soft focus background, inspiring atmosphere",
-        "Urgent & Action-Oriented": "bold, dynamic, high contrast, vibrant reds and oranges, energetic composition, strong typography space",
-        "Casual & Friendly": "bright, cheerful, pastel colors, playful composition, friendly vibe, lifestyle photography style",
+        "Professional & Trustworthy": "clean, minimal, professional style, soft lighting, muted elegant tones",
+        "Warm & Inspirational": "warm golden light, hopeful, uplifting atmosphere, natural tones, soft focus",
+        "Urgent & Action-Oriented": "bold, high contrast, dynamic, energetic composition",
+        "Casual & Friendly": "bright, warm, cheerful, relatable, lifestyle feel",
         "Custom": "modern, clean, visually appealing, professional marketing style"
     };
 
-    const styleGuide = toneStyles[tone] || toneStyles["Custom"];
+    const toneStyle = toneStyles[tone] || toneStyles["Custom"];
 
-    return `Marketing social media post image for "${productName}". ${imageSuggestion}. Style: ${styleGuide}. Square format for Instagram. No text overlays, no watermarks, no logos. High quality, photorealistic.`;
+    return `High-impact Instagram marketing image for "${productName}". ${imageSuggestion} Visual style: ${toneStyle}. Square 1:1 composition. No watermarks, no logos. High resolution, visually distinctive enough to stop a scroll.`;
 }

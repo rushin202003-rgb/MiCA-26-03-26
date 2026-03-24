@@ -13,6 +13,14 @@ import { DEMO_MODE_ENABLED, DEMO_CAMPAIGN } from '../../data/demoData';
 import MiCALogo from '../../components/MiCALogo';
 import { useAnimationContext } from '../../context/AnimationContext';
 
+function extractJson(response: string): string {
+    const cleaned = response.replace(/```json\n?|\n?```/g, '').replace(/```\n?|\n?```/g, '').trim();
+    const start = cleaned.indexOf('{');
+    const end = cleaned.lastIndexOf('}');
+    if (start !== -1 && end !== -1 && end > start) return cleaned.slice(start, end + 1);
+    return cleaned;
+}
+
 interface Campaign {
     id: string;
     product_name: string;
@@ -309,7 +317,7 @@ export const GeneratingCampaign: React.FC = () => {
             ? `CUSTOMER CONTACT LIST: ${context.contactCount} contacts uploaded (these are the people who will receive WhatsApp messages and emails directly)`
             : `CUSTOMER CONTACT LIST: Not yet provided. Generate the strategy anyway — the user will upload contacts before launching. Note this in your response.`;
 
-        const channelList = context.channels.join(', ');
+        const channelList = 'email, whatsapp, instagram';
 
         const prompt = `Analyze this product and design the optimal marketing campaign. You must CHOOSE the best marketing methodology for this specific product — do NOT use a generic template.
 
@@ -377,8 +385,8 @@ ${contactInfo}
       "total_count": "number — between 5 and 15",
       "journey_type": "broadcast_awareness",
       "rationale": "string",
-      "content_mix": { "educational": "number", "social_proof": "number", "offer": "number", "storytelling": "number", "engagement": "number", "product_showcase": "number" },
-      "stages": [{ "stage_name": "string", "day_range": [start, end], "count": "number", "purpose": "string", "content_direction": "string" }]
+      "content_mix": { "educational": "number", "social_proof": "number", "storytelling": "number", "engagement": "number", "product_showcase": "number" },
+      "stages": [{ "stage_name": "string", "day_range": [start, end], "count": "number", "purpose": "string", "content_direction": "string — describe the static image content concept, NOT video or reel ideas" }]
     }
   },
   "budget_allocation": {
@@ -401,12 +409,14 @@ ${contactInfo}
 - Indian market dynamics: local buying behaviour, cultural nuances, WhatsApp-first culture, Instagram as a discovery platform, price sensitivity, trust-building through personal connection
 - Campaign pacing: how to adjust content volume and intensity based on campaign duration (1-45 days)
 
-You DO NOT use templates. You ANALYZE each product deeply and CHOOSE the optimal strategy. A meditation program gets a completely different approach than a budget water filter.
+You DO NOT use templates. You ANALYZE each product deeply and CHOOSE the optimal strategy.
+
+BE CONCISE. Every field in the JSON should be clear and precise — not verbose. String values should be 1-3 sentences max. The weekly_plan tactics should be brief action descriptions, not essays. Clarity over length.
 
 Return ONLY valid JSON. No markdown, no code fences, no preamble.`;
 
-        const response = await callAI({ systemPrompt, userPrompt: prompt, temperature: 0.7 });
-        const strategyJson = JSON.parse(response.replace(/```json\n?|\n?```/g, '').trim());
+        const response = await callAI({ systemPrompt, userPrompt: prompt, temperature: 0.7, maxTokens: 10000 });
+        const strategyJson = JSON.parse(extractJson(response));
 
         // Save strategy to DB
         await supabase.from('campaigns').update({ marketing_plan: strategyJson }).eq('id', campaignData.id);
@@ -453,7 +463,7 @@ Output JSON format:
       "template_order": 1,
       "subject": "string — compelling subject line (max 60 chars)",
       "pre_header": "string — preview text that complements the subject (max 90 chars)",
-      "body": "string — complete HTML email body using <p>, <br>, <strong>, <ul>, <li>. Must include: greeting, 2-3 paragraphs of engaging content, and a closing paragraph that leads into the CTA. Write in the exact campaign tone. Reference the product and audience specifically. Use ₹ for currency. Aim for 200-300 words of body content.",
+      "body": "string — complete HTML email body. Structure: (1) greeting with {{first_name}}, (2) 2-3 paragraphs of engaging content using <p>, <strong>, <ul>, <li> tags, (3) REQUIRED: end with a styled CTA button using this exact HTML pattern: <a href='LINK_HERE' style='background-color:#F59E0B;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;display:inline-block;font-weight:bold;margin-top:16px;'>CTA_TEXT →</a> — for LINK_HERE: scan the PRODUCT DESCRIPTION and PRODUCT DOCUMENT for any registration URL, website link, or product page link and use it directly; if no link is found use {{cta_link}} as the placeholder. Write in the exact campaign tone. Use ₹ for currency. Aim for 200-300 words.",
       "cta_text": "string — clear, action-oriented call-to-action button text (max 5 words)",
       "scheduled_day": 1
     }
@@ -465,14 +475,15 @@ Rules:
 - Each email must follow the journey stages above — progressing the reader through the ${strategy.methodology?.name || 'conversion'} journey
 - Match the tone EXACTLY: ${toneDescription}
 - Write for the Indian market — use ₹ for currency, reference Indian cultural context where relevant
-- Every email must be complete and ready to send — no placeholders like [Name] or [Link]
+- Every email must be complete and ready to send — use {{first_name}} and {{cta_link}} as template variables; do NOT use bare placeholders like [Name] or [Link]
+- The CTA button is MANDATORY in every email — do not omit it
 - NEVER mention or invent a product price/cost. The marketing budget is NOT the product's price. Only mention pricing if specific pricing info appears in the PRODUCT DESCRIPTION above.
 - NEVER fabricate statistics, testimonials, or specific numbers. Only use factual claims from the PRODUCT DESCRIPTION.`;
 
-        const systemPrompt = `You are MiCA, an expert AI marketing email copywriter specializing in campaigns for small businesses and entrepreneurs in India. You write complete, high-converting marketing emails that match the requested tone exactly. You understand Indian consumer psychology, cultural references, and what drives engagement in the Indian market. You follow the campaign's chosen marketing methodology to structure the email sequence as a deliberate journey. Return ONLY valid JSON. No markdown, no preamble.`;
+        const systemPrompt = `You are MiCA, an expert AI marketing email copywriter specializing in campaigns for small businesses and entrepreneurs in India. You write complete, high-converting marketing emails that match the requested tone exactly. Keep emails focused and readable — 200-300 words in the body, no padding. You follow the campaign's chosen marketing methodology to structure the email sequence as a deliberate journey. Return ONLY valid JSON. No markdown, no preamble.`;
 
-        const response = await callAI({ systemPrompt, userPrompt: prompt, temperature: 0.7 });
-        const emailsJson = JSON.parse(response.replace(/```json\n?|\n?```/g, '').trim());
+        const response = await callAI({ systemPrompt, userPrompt: prompt, temperature: 0.7, maxTokens: 10000 });
+        const emailsJson = JSON.parse(extractJson(response));
 
         const emailsToInsert = emailsJson.emails.map((e: any) => ({
             campaign_id: campaignData.id,
@@ -494,7 +505,7 @@ Rules:
             : '';
 
         // WhatsApp Generation
-        if (campaignData.recommended_channels.includes('whatsapp')) {
+        {
             const waPlan = strategy.channel_plan?.whatsapp;
             const waCount = waPlan?.total_count || 8;
             const waStages = waPlan?.stages
@@ -532,7 +543,8 @@ Content Rules:
             const waResponse = await callAI({
                 systemPrompt: `You are MiCA, an expert WhatsApp marketing copywriter for Indian small businesses. You write messages that feel personal and human — like they come from a trusted local business. Your messages follow a deliberate journey based on the campaign's marketing methodology. Conversational, warm, culturally relevant to India. Return ONLY valid JSON. No markdown, no preamble.`,
                 userPrompt: waPrompt,
-                temperature: 0.8
+                temperature: 0.8,
+                maxTokens: 8000
             });
             const waJson = JSON.parse(waResponse.replace(/```json\n?|\n?```/g, '').trim());
 
@@ -547,7 +559,7 @@ Content Rules:
         }
 
         // Instagram Generation
-        if (campaignData.recommended_channels.includes('instagram')) {
+        {
             const igPlan = strategy.channel_plan?.instagram;
             // Guardrail: 5-15 posts
             const igCount = Math.min(15, Math.max(5, igPlan?.total_count || 10));
@@ -577,18 +589,19 @@ Output JSON: { "social_posts": [{ "post_order": 1, "caption": "string", "hashtag
 
 Content Rules:
 - ${igCount} posts total across ${context.campaignDuration} days (distribute evenly, not every day)
-- caption: 150-220 words. Scroll-stopping hook → 2-3 short paragraphs → clear CTA
+- caption: 60-90 words MAX. Hook (1 line) → 2-3 very short punchy lines → CTA. Brevity is essential — stressed, busy people do not read long captions
 - hashtags: 5-8 relevant hashtags as a single string. Mix broad and niche. Include India-specific tags.
-- image_suggestion: 1-2 sentence description of the ideal visual for this post
-- Follow the content mix above — create the right balance of post types
+- image_suggestion: Describe ONE clear, focused visual for this post — a single scene, subject, or graphic that captures the post's core message. If the post covers multiple things, pick the single most powerful one. Can be: a lifestyle scene (person in a relatable real-life situation), a bold text card (ideal for quotes or statistics — state the exact text to display), or a clean focused environment/object. AVOID: icon collections, clipart, multiple unrelated symbols, or cluttered compositions — these look cheap and confusing. NEVER suggest a specific named real person's face (e.g. the instructor's face) — the model cannot render real individuals and will hallucinate a wrong face. General anonymous people in scenes are fine. Must be a STATIC IMAGE — no videos, no reels.
+- All posts use STATIC IMAGES only — no reels, no video formats.
 - Each post must STAND ALONE — no references to previous posts
 - NEVER mention or invent a product price/cost. Only mention pricing if in the PRODUCT DESCRIPTION.
 - NEVER fabricate statistics or testimonials. Only use facts from the PRODUCT DESCRIPTION.`;
 
             const socialResponse = await callAI({
-                systemPrompt: `You are MiCA, an expert Instagram content strategist for Indian small businesses. You create scroll-stopping captions that build genuine connection and drive action. Each post stands alone — you never reference other posts in the campaign. Your content follows the campaign's marketing methodology and content mix strategy. Return ONLY valid JSON. No markdown, no preamble.`,
+                systemPrompt: `You are MiCA, an expert Instagram content strategist for Indian small businesses. You create scroll-stopping captions that build genuine connection and drive action. Each post stands alone. Be CONCISE — captions must be short and punchy (60-90 words max). Busy, stressed people do not read long posts. Every word must earn its place. Return ONLY valid JSON. No markdown, no preamble.`,
                 userPrompt: socialPrompt,
-                temperature: 0.8
+                temperature: 0.8,
+                maxTokens: 8000
             });
             const socialJson = JSON.parse(socialResponse.replace(/```json\n?|\n?```/g, '').trim());
 
@@ -606,7 +619,6 @@ Content Rules:
 
     // --- API CALL 4: IMAGES ---
     const generateImages = async (campaignData: Campaign) => {
-        if (!campaignData.recommended_channels.includes('instagram')) return;
 
         // Fetch posts that need images
         const { data: posts } = await supabase
@@ -654,47 +666,83 @@ Content Rules:
     const generateVideoScript = async (campaignData: Campaign, strategy: any) => {
         const creatorName = campaignData.creator_name || 'Business Owner';
 
-        const prompt = `CONTEXT:
+        const userPrompt = `CONTEXT:
 CREATOR_NAME: ${creatorName}
 PRODUCT: ${campaignData.product_name}
 STRATEGY SUMMARY: ${strategy.strategy_summary}
 CHANNELS: ${campaignData.recommended_channels.join(', ')}
 
-Please write the video script based on the system instructions.`;
+Please write the detailed Video Agent prompt.`;
 
-        const systemPrompt = `You are MiCA's video scriptwriter. Write a 60-second video script for an AI avatar spokesperson to present a marketing campaign summary.
+        const systemPrompt = `You are an expert video director for AI marketing campaigns. Write a comprehensive prompt for the HeyGen Video Agent.
 
-The avatar will be speaking directly to the business owner, presenting their campaign strategy in an encouraging, professional tone. The video will be in portrait (9:16) format.
+The prompt must follow this EXACT structure:
 
-Respond in valid JSON only.
+Create a [Duration]-second vertical (9:16) video with [Avatar Description]. Background: [Background Description].
 
-Response format:
+TONE: [One sentence describing the emotional tone and delivery style — e.g. "Conversational friend explaining over chai, excited FOR the client"]
+
+---
+
+SCRIPT:
+
+[SCENE 1 - Opening (0-12 seconds)]
+Avatar speaks with [Emotion/Tone]:
+"[Spoken words]"
+[Visual: Text overlay or action description]
+
+[SCENE 2 - The Problem (12-25 seconds)]
+Avatar speaks:
+"[Spoken words]"
+[Visual: ...]
+
+[SCENE 3 - The Strategy & Channels (25-50 seconds)]
+Avatar gestures:
+"[Spoken words]"
+[Visual: Split screen or animation description]
+
+[SCENE 4 - Results/Closing (50-65 seconds)]
+Avatar speaks:
+"[Spoken words]"
+[Visual: Final frame description]
+
+---
+
+VISUAL NOTES FOR VIDEO AGENT:
+- [Specific note about avatar behavior/gestures]
+- [Text overlay timing and font style]
+- [Transition style]
+- [Background music direction]
+- Color scheme: [Specific colors matching the product/brand]
+
+Requirements:
+1. Format: Vertical (9:16) aspect ratio for mobile viewing.
+2. Avatar: Professional Indian male or female (based on brand tone), 30-38 years, smart casual attire. Confident and approachable.
+3. Background: Modern home studio or office, plants, soft warm lighting.
+4. Script Content & Tone:
+   - Address the Creator: Start with "Namaste ${creatorName}!" or "Hello ${creatorName}!"
+   - Acknowledge their specific product (${campaignData.product_name}) and their audience's real challenge
+   - Present the campaign as the solution MiCA has built FOR THEM
+   - Walk through the specific channel strategy as concrete tools working for them
+   - Include timecodes on all scene headings
+   - End with a motivating, personal closing line
+   - Style: Warm, encouraging — like a knowledgeable friend over chai
+5. Duration: 60-75 seconds total.
+6. Include ALL: scene timecodes, avatar direction, visual cues, and the full VISUAL NOTES section.
+
+Return ONLY valid JSON in this format:
 {
-  "video_agent_prompt": "The complete spoken script. Write in natural, conversational spoken English. NOT formal report language. Include natural pauses indicated by '...' where appropriate. Must be 120-150 words (60 seconds at normal speaking pace). Address the business owner by their name (${creatorName})."
-}
+  "video_agent_prompt": "The entire formatted text block — including the opening 'Create a...' line, TONE line, all SCRIPT scenes with timecodes and visual directions, and the VISUAL NOTES section. This is NOT just spoken words — it is the full director's brief."
+}`;
 
-Rules:
-- Start with a warm, personal greeting using the creator's name (e.g. "Namaste ${creatorName}!" or "Hello ${creatorName}!")
-- Mention their product (${campaignData.product_name}) specifically
-- Briefly describe the campaign approach (1-2 sentences)
-- Highlight the 3 most important tactics across the campaign
-- Mention the channels being used
-- End with an encouraging, motivational closing
-- Keep it under 150 words (CRITICAL — longer scripts = longer/expensive videos)
-- Speak naturally — contractions, simple words, like a friendly marketing consultant
-- Reference Indian context naturally if the product is India-focused
-- Do NOT use any visual directions or camera cues — this is audio/speech only`;
-
-        const response = await callAI({ systemPrompt, userPrompt: prompt, temperature: 0.7 });
+        const response = await callAI({ systemPrompt, userPrompt, temperature: 0.7, maxTokens: 2000 });
 
         let scriptJson;
         try {
-            const cleanResponse = response.replace(/```json\n?|\n?```/g, '').trim();
-            scriptJson = JSON.parse(cleanResponse);
+            scriptJson = JSON.parse(extractJson(response));
         } catch (e) {
             console.error("JSON Parse Error in Video Script:", e);
             console.log("Raw Response:", response);
-            // Fallback: create a simple object with the raw response as the prompt
             scriptJson = { video_agent_prompt: response.replace(/```json\n?|\n?```/g, '').trim() };
         }
 
