@@ -70,8 +70,8 @@ export default function EyeCharacter({ size = 108, onGiggle, version = 'modern' 
     if (onGiggle) onGiggle(); // Trigger the callback (e.g. for showing peeking vignette)
 
     await gigglesControls.start({
-      rotate: GIGGLE_KEYFRAMES.rotate,
-      y: GIGGLE_KEYFRAMES.y,
+      rotate: [...GIGGLE_KEYFRAMES.rotate],
+      y: [...GIGGLE_KEYFRAMES.y],
       transition: { duration: 0.85, ease: 'easeOut' },
     });
     await gigglesControls.start({
@@ -184,8 +184,8 @@ export default function EyeCharacter({ size = 108, onGiggle, version = 'modern' 
 
         // 6. Shake/giggle once after recovering!
         await gigglesControls.start({
-          rotate: GIGGLE_KEYFRAMES.rotate,
-          y: GIGGLE_KEYFRAMES.y,
+          rotate: [...GIGGLE_KEYFRAMES.rotate],
+          y: [...GIGGLE_KEYFRAMES.y],
           transition: { duration: 0.85, ease: 'easeOut' },
         });
         await gigglesControls.start({ rotate: 0, y: 0, transition: { duration: 0.2, ease: 'easeOut' } });
@@ -317,9 +317,9 @@ export default function EyeCharacter({ size = 108, onGiggle, version = 'modern' 
   // Squint when generating OR when blastoff is occurring
   const isSquinting = (mode === 'generating' && generationProgress < 1) || isFlying;
 
-  const smilePath = isSquinting 
+  const smilePath: string = isSquinting
     ? 'M 10 25 Q 50 25 90 25' // Straight line
-    : (isGiggling ? 'M 2 4 Q 50 44 98 4' : SMILE_VARIANTS[smileIdx]?.d ?? SMILE_VARIANTS[0].d);
+    : (isGiggling ? 'M 2 4 Q 50 44 98 4' : (SMILE_VARIANTS[smileIdx]?.d ?? SMILE_VARIANTS[0].d));
   
   // Show mouth (big grin) if excited/giggling. Also keep mouth open during launch build-up for excitement!
   const showMouth = (isExcited && mode === 'idle') || isGiggling || (mode === 'launching' && !isFlying);

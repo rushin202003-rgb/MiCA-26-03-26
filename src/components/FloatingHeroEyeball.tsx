@@ -93,7 +93,7 @@ export default function FloatingHeroEyeball({ onGiggle, version = 'modern' }: Pr
     const handleMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = Math.max(90, e.clientY); // Don't chase cursor under the header
-      if (isChasingRef.current) {
+      if (isChasingRef.current && modeRef.current !== 'focused') {
         // Offset by 80px so it stays close but doesn't block the actual click target
         setTargetPos({ x: mouseX + 80, y: mouseY + 80 });
       }

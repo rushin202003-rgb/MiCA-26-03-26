@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 
-export type AnimationMode = 'idle' | 'generating' | 'launching' | 'error';
+export type AnimationMode = 'idle' | 'generating' | 'launching' | 'error' | 'focused';
 
 interface AnimationContextProps {
   mode: AnimationMode;
