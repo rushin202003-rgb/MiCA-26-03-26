@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+// Link import removed as it is no longer used on the landing page for Demo Day
 import WaitlistModal from '../components/WaitlistModal';
 import { Sparkles, FileText, Rocket } from "lucide-react";
 import { Button } from '../components/ui/Button';
@@ -128,6 +128,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
     const [waitlistSource, setWaitlistSource] = useState<'hero' | 'cta'>('hero');
 
     const openWaitlist = (source: 'hero' | 'cta') => { setWaitlistSource(source); setWaitlistOpen(true); };
+
+    useEffect(() => {
+        const handleOpenWaitlist = () => openWaitlist('hero');
+        window.addEventListener('open-waitlist', handleOpenWaitlist);
+        return () => window.removeEventListener('open-waitlist', handleOpenWaitlist);
+    }, []);
 
     const handleBamEnter = () => {
         if (!isBamming) {
@@ -291,12 +297,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ version: eyeVersion = 
                             </p>
 
                             <div className="flex flex-col sm:flex-row gap-5 relative z-20" data-interest="buttons">
-                                <Link to="/create-campaign">
-                                    <Button variant="custom" size="lg" className="bg-[#FF7A00] hover:bg-[#FF6600] text-white font-extrabold px-10 py-6 text-xl rounded-full shadow-[0_0_18px_4px_rgba(255,122,0,0.4)] transition-all transform hover:scale-105 border-none hover:shadow-[0_0_28px_8px_rgba(255,122,0,0.9)]">
-                                        Create your campaign
-                                    </Button>
-                                </Link>
-                                <Button size="lg" variant="outline" onClick={() => openWaitlist('hero')} className="border-white/50 text-white font-normal hover:bg-white/10 hover:text-white hover:border-green-500/70 hover:shadow-[0_0_24px_rgba(37,211,102,0.45)] hover:-translate-y-1 px-10 py-6 text-base rounded-full backdrop-blur-sm transition-all duration-300">
+                                <Button variant="custom" size="lg" onClick={() => openWaitlist('hero')} className="bg-[#FF7A00] hover:bg-[#FF6600] text-white font-extrabold px-10 py-6 text-xl rounded-full shadow-[0_0_18px_4px_rgba(255,122,0,0.4)] transition-all transform hover:scale-105 border-none hover:shadow-[0_0_28px_8px_rgba(255,122,0,0.9)] w-fit mx-auto lg:mx-0">
                                     Join the waitlist
                                 </Button>
                             </div>

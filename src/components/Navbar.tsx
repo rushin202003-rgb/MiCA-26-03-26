@@ -44,12 +44,9 @@ export const Navbar: React.FC = () => {
                             </>
                         ) : (
                             <>
-                                <Link to="/login">
-                                    <Button variant="ghost" size="sm">Log In</Button>
-                                </Link>
-                                <Link to="/signup">
-                                    <Button variant="primary" size="sm">Sign Up</Button>
-                                </Link>
+                                <Button variant="primary" size="sm" onClick={() => window.dispatchEvent(new Event('open-waitlist'))}>
+                                    Join the Waitlist
+                                </Button>
                             </>
                         )}
                     </div>
@@ -82,12 +79,11 @@ export const Navbar: React.FC = () => {
                         </>
                     ) : (
                         <>
-                            <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block">
-                                <Button variant="ghost" className="w-full justify-center">Log In</Button>
-                            </Link>
-                            <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="block">
-                                <Button variant="primary" className="w-full justify-center">Sign Up</Button>
-                            </Link>
+                            <div className="block">
+                                <Button variant="primary" className="w-full justify-center" onClick={() => { setIsMenuOpen(false); window.dispatchEvent(new Event('open-waitlist')); }}>
+                                    Join the Waitlist
+                                </Button>
+                            </div>
                         </>
                     )}
                 </div>
