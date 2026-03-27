@@ -58,38 +58,38 @@ export default function WaitlistModal({ visible, source, onClose }: WaitlistModa
                     exit={{ opacity: 0, scale: 0.95, y: 16 }}
                     transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
                     onClick={e => e.stopPropagation()}
-                    style={{ background: 'rgba(10,20,40,0.85)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,122,0,0.3)', borderRadius: '20px', width: '100%', maxWidth: '440px', boxShadow: '0 0 60px rgba(255,122,0,0.15), 0 40px 80px rgba(0,0,0,0.6)', overflow: 'hidden' }}
+                    style={{ background: 'rgba(10,20,40,0.85)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,122,0,0.3)', borderRadius: '24px', width: '100%', maxWidth: '560px', boxShadow: '0 0 60px rgba(255,122,0,0.15), 0 40px 80px rgba(0,0,0,0.6)', overflow: 'hidden' }}
                 >
                     {/* Header */}
-                    <div style={{ padding: '24px 24px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <div style={{ padding: '32px 32px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(255,122,0,0.12)', border: '1px solid rgba(255,122,0,0.25)', color: '#FF7A00' }}>
-                                <Sparkles size={16} />
+                                <Sparkles size={20} />
                             </div>
-                            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#FF7A00' }}>Early Access</span>
+                            <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#FF7A00' }}>Early Access</span>
                         </div>
-                        <button onClick={handleClose} style={{ padding: '6px', borderRadius: '8px', color: '#6B7280', background: 'transparent', border: 'none', cursor: 'pointer', lineHeight: 0 }}
+                        <button onClick={handleClose} style={{ padding: '8px', borderRadius: '10px', color: '#6B7280', background: 'transparent', border: 'none', cursor: 'pointer', lineHeight: 0 }}
                             onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
                             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                            <X size={18} />
+                            <X size={24} />
                         </button>
                     </div>
 
                     {/* Body */}
-                    <div style={{ padding: '16px 24px 24px' }}>
+                    <div style={{ padding: '24px 32px 32px' }}>
                         {status !== 'success' ? (
                             <>
-                                <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'white', marginBottom: '8px', lineHeight: 1.2 }}>
+                                <h2 style={{ fontSize: '32px', fontWeight: 800, color: 'white', marginBottom: '12px', lineHeight: 1.2 }}>
                                     Reserve your spot<br />
                                     <span style={{ color: '#FF7A00' }}>before the doors open.</span>
                                 </h2>
-                                <p style={{ fontSize: '13px', color: '#9CA3AF', marginBottom: '20px', lineHeight: 1.6 }}>
+                                <p style={{ fontSize: '16px', color: '#9CA3AF', marginBottom: '32px', lineHeight: 1.6 }}>
                                     MiCA is in private beta. Drop your email and you'll be first in line when we launch — no spam, just your moment.
                                 </p>
 
                                 <form onSubmit={handleSubmit}>
-                                    <div style={{ position: 'relative', marginBottom: '12px' }}>
-                                        <Mail size={15} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#6B7280', pointerEvents: 'none' }} />
+                                    <div style={{ position: 'relative', marginBottom: '16px' }}>
+                                        <Mail size={22} style={{ position: 'absolute', left: '18px', top: '50%', transform: 'translateY(-50%)', color: '#6B7280', pointerEvents: 'none' }} />
                                         <input
                                             type="email"
                                             required
@@ -97,7 +97,7 @@ export default function WaitlistModal({ visible, source, onClose }: WaitlistModa
                                             value={email}
                                             onChange={e => setEmail(e.target.value)}
                                             disabled={status === 'loading'}
-                                            style={{ width: '100%', paddingLeft: '40px', paddingRight: '16px', paddingTop: '13px', paddingBottom: '13px', borderRadius: '12px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
+                                            style={{ width: '100%', paddingLeft: '56px', paddingRight: '20px', paddingTop: '18px', paddingBottom: '18px', borderRadius: '16px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'white', fontSize: '18px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
                                             onFocus={e => (e.target.style.borderColor = 'rgba(255,122,0,0.5)')}
                                             onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.12)')}
                                         />
@@ -117,7 +117,7 @@ export default function WaitlistModal({ visible, source, onClose }: WaitlistModa
                                     <button
                                         type="submit"
                                         disabled={status === 'loading' || !email.trim()}
-                                        style={{ width: '100%', padding: '14px', borderRadius: '12px', background: status === 'loading' ? 'rgba(255,122,0,0.5)' : '#FF7A00', border: 'none', color: 'white', fontWeight: 700, fontSize: '15px', cursor: status === 'loading' ? 'not-allowed' : 'pointer', boxShadow: '0 0 24px rgba(255,122,0,0.35)', transition: 'all 0.15s' }}
+                                        style={{ width: '100%', padding: '18px', borderRadius: '16px', background: status === 'loading' ? 'rgba(255,122,0,0.5)' : '#FF7A00', border: 'none', color: 'white', fontWeight: 800, fontSize: '18px', cursor: status === 'loading' ? 'not-allowed' : 'pointer', boxShadow: '0 0 24px rgba(255,122,0,0.35)', transition: 'all 0.15s' }}
                                         onMouseEnter={e => { if (status !== 'loading') e.currentTarget.style.boxShadow = '0 0 40px rgba(255,122,0,0.6)'; }}
                                         onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 0 24px rgba(255,122,0,0.35)'; }}
                                     >
@@ -132,18 +132,18 @@ export default function WaitlistModal({ visible, source, onClose }: WaitlistModa
                                 transition={{ duration: 0.3 }}
                                 style={{ textAlign: 'center', padding: '16px 0 8px' }}
                             >
-                                <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎯</div>
-                                <h3 style={{ fontSize: '22px', fontWeight: 800, color: 'white', marginBottom: '10px' }}>
+                                <div style={{ fontSize: '64px', marginBottom: '20px' }}>🎯</div>
+                                <h3 style={{ fontSize: '32px', fontWeight: 800, color: 'white', marginBottom: '16px' }}>
                                     Spot secured.
                                 </h3>
-                                <p style={{ fontSize: '14px', color: '#9CA3AF', lineHeight: 1.7, marginBottom: '20px' }}>
+                                <p style={{ fontSize: '18px', color: '#9CA3AF', lineHeight: 1.7, marginBottom: '32px' }}>
                                     We'll reach out the moment<br />
                                     <span style={{ color: '#FF7A00', fontWeight: 600 }}>the doors open.</span><br />
                                     Stay excited!
                                 </p>
                                 <button
                                     onClick={handleClose}
-                                    style={{ padding: '10px 28px', borderRadius: '30px', background: 'rgba(255,122,0,0.12)', border: '1px solid rgba(255,122,0,0.3)', color: '#FF7A00', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}
+                                    style={{ padding: '14px 36px', borderRadius: '30px', background: 'rgba(255,122,0,0.12)', border: '1px solid rgba(255,122,0,0.3)', color: '#FF7A00', fontWeight: 700, fontSize: '16px', cursor: 'pointer' }}
                                 >
                                     Can't wait ✦
                                 </button>
